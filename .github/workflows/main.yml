@@ -1,0 +1,2622 @@
+<!DOCTYPE html>
+<html lang="ru" data-theme="day">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>FitTrainer Live — Liquid Glass Edition</title>
+  <script src="https://cdn.tailwindcss.com/3.4.17"></script>
+  <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+
+    /* =========================================================================
+       1. ДНЕВНОЙ РЕЖИМ — SOFT GLASS (Молочно-белый с мятным и голубым)
+       ========================================================================= */
+    :root, html[data-theme="day"] {
+      --bg-app: #eef2f6;
+      --bg-gradient: radial-gradient(circle at 15% 10%, rgba(167, 243, 208, 0.38), transparent 45%),
+                     radial-gradient(circle at 85% 18%, rgba(186, 230, 253, 0.45), transparent 48%),
+                     linear-gradient(180deg, #f7f9fc 0%, #edf1f7 100%);
+      --glass-surface: rgba(255, 255, 255, 0.75);
+      --glass-surface-strong: rgba(255, 255, 255, 0.90);
+      --glass-surface-subtle: rgba(244, 247, 251, 0.82);
+      --glass-secondary-card: linear-gradient(135deg, rgba(224, 242, 254, 0.72) 0%, rgba(240, 249, 255, 0.84) 100%);
+      --glass-stroke: rgba(148, 163, 184, 0.24);
+      --glass-shadow: 0 12px 32px -8px rgba(15, 23, 42, 0.06), 0 2px 6px -1px rgba(15, 23, 42, 0.03);
+      --text-primary: #0f172a;
+      --text-secondary: #475569;
+      --text-muted: #64748b;
+      --accent-main: #10b981;
+      --accent-main-strong: #059669;
+      --accent-soft: rgba(16, 185, 129, 0.14);
+      --accent-border: rgba(16, 185, 129, 0.45);
+      --accent-glow: 0 0 0 1.5px rgba(16, 185, 129, 0.58), 0 12px 28px -6px rgba(16, 185, 129, 0.18);
+      --badge-info-bg: rgba(59, 130, 246, 0.12);
+      --badge-info-text: #2563eb;
+      --badge-warn-bg: rgba(245, 158, 11, 0.14);
+      --badge-warn-text: #d97706;
+      --nav-glass: rgba(255, 255, 255, 0.88);
+    }
+
+    /* =========================================================================
+       2. НОЧНОЙ РЕЖИМ — MIDNIGHT GLASS (Графитово-синий с холодным синим)
+       ========================================================================= */
+    html[data-theme="night"] {
+      --bg-app: #090e1a;
+      --bg-gradient: radial-gradient(circle at 18% 12%, rgba(37, 99, 235, 0.22), transparent 45%),
+                     radial-gradient(circle at 82% 20%, rgba(30, 64, 175, 0.18), transparent 50%),
+                     linear-gradient(180deg, #0b1120 0%, #070b14 100%);
+      --glass-surface: rgba(17, 25, 42, 0.74);
+      --glass-surface-strong: rgba(22, 32, 54, 0.90);
+      --glass-surface-subtle: rgba(13, 20, 35, 0.80);
+      --glass-secondary-card: linear-gradient(135deg, rgba(23, 37, 68, 0.78) 0%, rgba(15, 25, 48, 0.84) 100%);
+      --glass-stroke: rgba(59, 130, 246, 0.24);
+      --glass-shadow: 0 16px 36px -8px rgba(0, 0, 0, 0.55), inset 0 1px 0 0 rgba(255, 255, 255, 0.07);
+      --text-primary: #f8fafc;
+      --text-secondary: #cbd5e1;
+      --text-muted: #94a3b8;
+      --accent-main: #3b82f6;
+      --accent-main-strong: #2563eb;
+      --accent-soft: rgba(59, 130, 246, 0.18);
+      --accent-border: rgba(59, 130, 246, 0.65);
+      --accent-glow: 0 0 0 1.5px rgba(59, 130, 246, 0.72), 0 12px 30px -6px rgba(37, 99, 235, 0.38);
+      --badge-info-bg: rgba(59, 130, 246, 0.18);
+      --badge-info-text: #60a5fa;
+      --badge-warn-bg: rgba(245, 158, 11, 0.16);
+      --badge-warn-text: #fbbf24;
+      --nav-glass: rgba(13, 20, 36, 0.90);
+    }
+
+    body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      background: var(--bg-gradient);
+      background-color: var(--bg-app);
+      color: var(--text-primary);
+      margin: 0;
+      padding: 0;
+      overflow-x: hidden;
+      user-select: none;
+      transition: background 0.25s ease, color 0.2s ease;
+    }
+
+    .glass-panel {
+      background: var(--glass-surface);
+      backdrop-filter: blur(22px) saturate(160%);
+      -webkit-backdrop-filter: blur(22px) saturate(160%);
+      border: 1px solid var(--glass-stroke);
+      box-shadow: var(--glass-shadow);
+    }
+
+    .glass-panel-strong {
+      background: var(--glass-surface-strong);
+      backdrop-filter: blur(26px) saturate(180%);
+      -webkit-backdrop-filter: blur(26px) saturate(180%);
+      border: 1px solid var(--glass-stroke);
+      box-shadow: var(--glass-shadow);
+    }
+
+    .glass-subbox {
+      background: var(--glass-surface-subtle);
+      border: 1px solid var(--glass-stroke);
+    }
+
+    .glass-active-card {
+      background: var(--glass-surface-strong);
+      backdrop-filter: blur(24px);
+      -webkit-backdrop-filter: blur(24px);
+      border: 1.5px solid var(--accent-border);
+      box-shadow: var(--accent-glow);
+    }
+
+    .glass-secondary-card {
+      background: var(--glass-secondary-card);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border: 1px solid var(--glass-stroke);
+      box-shadow: var(--glass-shadow);
+    }
+
+    .accent-pill {
+      background: var(--accent-soft);
+      color: var(--accent-main-strong);
+      border: 1px solid var(--accent-border);
+    }
+    html[data-theme="night"] .accent-pill { color: #93c5fd; }
+
+    .intensifier-pill {
+      background: linear-gradient(135deg, rgba(245, 158, 11, 0.16) 0%, rgba(234, 88, 12, 0.12) 100%);
+      color: #b45309;
+      border: 1px solid rgba(245, 158, 11, 0.45);
+    }
+    html[data-theme="night"] .intensifier-pill {
+      background: linear-gradient(135deg, rgba(245, 158, 11, 0.22) 0%, rgba(59, 130, 246, 0.22) 100%);
+      color: #fcd34d;
+      border: 1px solid rgba(251, 191, 36, 0.50);
+    }
+
+    .accent-btn {
+      background: var(--accent-soft);
+      color: var(--accent-main-strong);
+      border: 1.5px solid var(--accent-border);
+    }
+    html[data-theme="night"] .accent-btn {
+      background: linear-gradient(180deg, rgba(37, 99, 235, 0.42) 0%, rgba(29, 78, 216, 0.58) 100%);
+      color: #f8fafc;
+    }
+
+    .accent-solid-btn {
+      background: var(--accent-main);
+      color: #ffffff;
+      box-shadow: 0 8px 20px -4px rgba(16, 185, 129, 0.35);
+    }
+    html[data-theme="night"] .accent-solid-btn {
+      background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+      box-shadow: 0 8px 22px -4px rgba(37, 99, 235, 0.5);
+    }
+
+    .text-main { color: var(--text-primary); }
+    .text-sub { color: var(--text-secondary); }
+    .text-muted-custom { color: var(--text-muted); }
+    .accent-text { color: var(--accent-main); }
+
+    .no-scrollbar::-webkit-scrollbar { display: none; }
+    .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+    .snap-x-mandatory { scroll-snap-type: x mandatory; }
+    .snap-start-card { scroll-snap-align: start; }
+  </style>
+</head>
+<body class="min-h-screen flex flex-col items-center">
+
+  <div class="w-full max-w-xl min-h-screen flex flex-col justify-between relative pb-28">
+
+    <!-- =====================================================================
+         TOP HEADER (Liquid Glass)
+         ===================================================================== -->
+    <header class="sticky top-0 z-30 px-3.5 pt-3 pb-2.5" style="background: var(--nav-glass); backdrop-filter: blur(22px); -webkit-backdrop-filter: blur(22px); border-bottom: 1px solid var(--glass-stroke);">
+      <div class="flex items-center justify-between gap-2 mb-2.5">
+        <div class="flex items-center gap-2 min-w-0">
+          <div class="w-10 h-10 rounded-full glass-panel-strong flex items-center justify-center font-extrabold text-sm shrink-0 accent-text" style="border-width: 1.5px; border-color: var(--accent-border);">
+            FT
+          </div>
+          <div class="min-w-0">
+            <div class="flex items-center gap-1.5">
+              <h1 class="text-[15px] font-extrabold tracking-tight text-main truncate">FitTrainer Live</h1>
+              <span class="w-2 h-2 rounded-full shrink-0" style="background: var(--accent-main);"></span>
+            </div>
+            <p class="text-[11px] text-muted-custom leading-tight truncate">Смена в зале • 1 касание</p>
+          </div>
+        </div>
+
+        <!-- Top Right Controls -->
+        <div class="flex items-center gap-1.5 shrink-0">
+          <button id="btnOpenSearch" type="button" class="h-9 px-2.5 rounded-2xl glass-panel flex items-center gap-1 text-xs font-bold text-main active:scale-95 transition" title="Список клиентов и удаление">
+            <span>🔍</span>
+            <span id="clientCountBadge">0</span>
+          </button>
+
+          <button id="btnExportExcelHeader" type="button" class="h-9 px-2.5 rounded-2xl glass-panel flex items-center gap-1 text-xs font-bold text-main active:scale-95 transition" title="Экспорт текущей программы в Excel (.xlsx)">
+            <span>📥</span>
+            <span class="hidden sm:inline">Excel</span>
+          </button>
+
+          <button id="btnQuickEditClient" type="button" class="w-9 h-9 rounded-2xl glass-panel flex items-center justify-center text-xs font-bold text-main active:scale-95 transition" title="Быстрое редактирование">
+            ✎
+          </button>
+
+          <button id="btnToggleTheme" type="button" class="w-9 h-9 rounded-2xl glass-panel flex items-center justify-center text-sm active:scale-95 transition" title="Переключить тему Дневной / Ночной">
+            <span id="themeIcon">🌙</span>
+          </button>
+
+          <button id="btnOpenImport" type="button" class="h-9 px-3 rounded-2xl accent-btn font-bold text-[11px] flex flex-col items-center justify-center leading-tight active:scale-95 transition">
+            <span class="text-xs font-extrabold">＋</span>
+            <span>Импорт</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- HORIZONTAL CLIENT CAROUSEL -->
+      <div id="clientCarousel" class="flex items-stretch gap-2.5 overflow-x-auto no-scrollbar snap-x-mandatory py-0.5">
+        <!-- Rendered by JS -->
+      </div>
+    </header>
+
+    <!-- =====================================================================
+         MAIN CONTENT AREA
+         ===================================================================== -->
+    <main class="flex-1 px-3.5 pt-3 flex flex-col gap-3">
+
+      <!-- TAB 1: ТРЕНИРОВКИ -->
+      <div id="tabViewWorkouts" class="flex flex-col gap-3">
+        <!-- Empty State (Shown when all clients are deleted or before first table import) -->
+        <section id="emptyClientsState" class="hidden glass-panel rounded-3xl p-6 text-center my-4">
+          <div class="text-3xl mb-2">📊</div>
+          <h2 class="text-base font-extrabold text-main">Нет загруженных программ клиентов</h2>
+          <p class="text-xs text-sub mt-1 mb-4">
+            Нажмите <b>«＋ Импорт»</b>, чтобы загрузить вашу таблицу Excel (`.xlsx`, `.xls`, `.csv`). Приложение автоматически разделит программу по дням недели (`Понедельник`, `Среда`, `Четверг`... или `День 1..N`), перенесёт заполненные веса и настроит таймер отдыха.
+          </p>
+          <button id="btnEmptyStateImport" type="button" class="py-3 px-5 rounded-2xl accent-solid-btn font-extrabold text-xs">
+            ＋ Импортировать таблицу (.xlsx / .csv)
+          </button>
+        </section>
+
+        <!-- Active Client Workout Content -->
+        <div id="activeWorkoutWrapper" class="flex flex-col gap-3">
+          <!-- PROGRAM PROGRESS & WEEK/DAY NAVIGATOR CARD -->
+          <section class="glass-panel rounded-3xl p-3.5">
+            <div class="flex items-center justify-between gap-2 mb-2.5">
+              <div class="min-w-0">
+                <div class="flex items-center gap-1.5 flex-wrap mb-1">
+                  <span id="clientSourceBadge" class="inline-block px-2.5 py-0.5 rounded-full text-[11px] font-semibold" style="background: var(--badge-info-bg); color: var(--badge-info-text);">
+                    Импортировано из таблицы
+                  </span>
+                  <button id="btnExportClientInline" type="button" class="px-2.5 py-0.5 rounded-full text-[11px] font-bold accent-pill active:scale-95 transition">
+                    📥 Скачать .xlsx
+                  </button>
+                </div>
+                <div id="programProgressText" class="text-[15px] font-extrabold text-main truncate">
+                  Неделя 1 из 6 • День 1
+                </div>
+              </div>
+
+              <div class="flex items-center gap-1.5 shrink-0">
+                <button id="btnMarkWorkoutSkipped" type="button" class="px-2.5 py-1.5 rounded-2xl glass-subbox flex flex-col items-center justify-center text-[11px] font-bold leading-tight active:scale-95 transition" style="color: var(--badge-warn-text);">
+                  <span>⏭</span>
+                  <span>Пропуск</span>
+                  <span class="text-[10px]">дня</span>
+                </button>
+                <button id="btnResetCurrentWorkout" type="button" class="px-2.5 py-1.5 rounded-2xl glass-subbox flex flex-col items-center justify-center text-[11px] font-semibold text-sub leading-tight active:scale-95 transition" title="Сбросить выполнение этого дня">
+                  <span>↻</span>
+                  <span>Сброс</span>
+                </button>
+              </div>
+            </div>
+
+            <!-- Week Selector Pills -->
+            <div id="weekSelector" class="flex items-center gap-1.5 overflow-x-auto no-scrollbar pb-2">
+              <!-- Rendered by JS -->
+            </div>
+
+            <!-- Day Selector Cards (Supports 1 to 7 training days, e.g. ПН, СР, ЧТ, ПТ, СБ) -->
+            <div id="daySelector" class="grid grid-cols-2 sm:grid-cols-3 gap-1.5 pt-1">
+              <!-- Rendered by JS -->
+            </div>
+          </section>
+
+          <!-- MISSED WORKOUT DECISION BANNER -->
+          <section id="skippedDayBanner" class="hidden glass-panel rounded-3xl p-3.5" style="border-color: rgba(245, 158, 11, 0.5);">
+            <p class="text-xs font-extrabold" style="color: var(--badge-warn-text);">
+              ⚠️ Тренировка помечена как пропущенная
+            </p>
+            <p class="text-[11px] text-sub mt-0.5">
+              Программа не сдвигается автоматически без вашего решения:
+            </p>
+            <div class="grid grid-cols-3 gap-1.5 mt-2.5">
+              <button id="btnSkippedResumeNow" type="button" class="py-2 px-2 rounded-xl accent-solid-btn font-bold text-xs active:scale-95 transition">
+                Провести сейчас
+              </button>
+              <button id="btnSkippedShiftProgram" type="button" class="py-2 px-2 rounded-xl glass-subbox font-semibold text-xs text-main active:scale-95 transition">
+                Перенести (+1)
+              </button>
+              <button id="btnSkippedKeepAndNext" type="button" class="py-2 px-2 rounded-xl glass-subbox font-medium text-xs text-sub active:scale-95 transition">
+                Оставить пропуск
+              </button>
+            </div>
+          </section>
+
+          <!-- COMPLETED EXERCISES -->
+          <section id="completedExercisesSection" class="flex flex-col gap-1.5"></section>
+
+          <!-- CURRENT ACTIVE EXERCISE OR SUPERSET CARD -->
+          <section id="activeFocusZone"></section>
+
+          <!-- NEXT EXERCISE PREVIEW & UPCOMING QUEUE -->
+          <section id="nextPreviewZone"></section>
+          <section id="upcomingExercisesSection" class="flex flex-col gap-1.5"></section>
+        </div>
+      </div>
+
+      <!-- TAB 2: ТАБЛИЦЫ (Import & Export Excel .xlsx) -->
+      <div id="tabViewTables" class="hidden flex-col gap-3">
+        <section class="glass-panel rounded-3xl p-4">
+          <h2 class="text-base font-extrabold text-main mb-1">Импорт и Экспорт таблиц Excel (.xlsx)</h2>
+          <p class="text-xs text-sub mb-3">
+            Загрузите вашу таблицу тренировок (`.xlsx`, `.xls`, `.csv`). Парсер автоматически распознаёт дни недели (`Понедельник`, `Среда`, `Четверг`... или `День 1..N`), пропускает `День отдыха`, соединяет подходы (`3 x`) с колонкой `Повторы` (`6–8` → `3×6–8`) и переносит веса только там, где они реально заполнены.
+          </p>
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
+            <label class="p-4 rounded-2xl glass-subbox border-dashed border-2 text-center cursor-pointer hover:opacity-90 transition flex flex-col items-center justify-center" style="border-color: var(--accent-border);">
+              <div class="text-base font-extrabold text-main mb-0.5">📂 Импорт из файла</div>
+              <div class="text-[11px] text-muted-custom">Выбрать .xlsx / .xls / .csv</div>
+              <input id="fileInputTabTables" type="file" accept=".xlsx,.xls,.csv,.tsv,.txt" class="hidden" />
+            </label>
+
+            <button id="btnExportAllOrActiveXlsx" type="button" class="p-4 rounded-2xl accent-btn text-center flex flex-col items-center justify-center active:scale-98 transition">
+              <div class="text-base font-extrabold mb-0.5">📥 Экспорт в Excel (.xlsx)</div>
+              <div class="text-[11px] opacity-85">Выгрузить заполненные веса и RPE текущего клиента</div>
+            </button>
+          </div>
+        </section>
+
+        <section class="glass-panel rounded-3xl p-4">
+          <div class="flex items-center justify-between mb-2">
+            <h3 class="text-sm font-extrabold text-main">Вставить ячейки напрямую из Google Sheets / Excel</h3>
+            <button id="btnParsePastedTable" type="button" class="px-3 py-1.5 rounded-xl accent-solid-btn text-xs font-bold">Распознать</button>
+          </div>
+          <input id="inputPastedClientName" type="text" placeholder="Имя клиента..." class="w-full px-3 py-2 rounded-xl glass-subbox text-xs text-main mb-2 focus:outline-none" />
+          <textarea id="textareaPasteTable" rows="4" placeholder="День недели&#9;Упражнение&#9;Повторы&#9;Отдых&#9;Неделя 1&#9;Вес&#10;ПОНЕДЕЛЬНИК&#9;1. Армейский жим в Смите&#9;6-8&#9;3 мин&#9;3 x (RPE 7)&#9;" class="w-full p-2.5 rounded-xl glass-subbox text-xs text-main font-mono focus:outline-none"></textarea>
+        </section>
+
+        <section class="glass-panel rounded-3xl p-4">
+          <h3 class="text-sm font-extrabold text-main mb-2">Таблицы в приложении (экспорт / удаление)</h3>
+          <div id="tablesLoadedList" class="flex flex-col gap-2"></div>
+        </section>
+      </div>
+
+      <!-- TAB 3: КЛИЕНТЫ (Manage, Delete Single or Delete ALL Clients) -->
+      <div id="tabViewClients" class="hidden flex-col gap-3">
+        <section class="glass-panel rounded-3xl p-4">
+          <div class="flex items-center justify-between gap-2 flex-wrap mb-3">
+            <div>
+              <h2 class="text-base font-extrabold text-main">Управление клиентами</h2>
+              <p class="text-xs text-sub">Вы можете удалить любую карточку или очистить весь список</p>
+            </div>
+            <div class="flex items-center gap-1.5">
+              <button id="btnDeleteAllClients" type="button" class="px-3 py-2 rounded-2xl glass-subbox text-rose-500 text-xs font-extrabold active:scale-95 transition">
+                🗑 Удалить всех
+              </button>
+              <button id="btnAddBlankClient" type="button" class="px-3 py-2 rounded-2xl accent-solid-btn text-xs font-bold active:scale-95 transition">
+                ＋ Импорт
+              </button>
+            </div>
+          </div>
+          <input id="inputTabSearchClient" type="text" placeholder="Поиск по имени клиента..." class="w-full px-3.5 py-2.5 rounded-2xl glass-subbox text-xs text-main mb-3 focus:outline-none" />
+          <div id="tabClientsListContainer" class="flex flex-col gap-2"></div>
+        </section>
+      </div>
+
+      <!-- TAB 4: АНАЛИТИКА -->
+      <div id="tabViewAnalytics" class="hidden flex-col gap-3">
+        <section class="glass-panel rounded-3xl p-4">
+          <div class="flex items-center justify-between gap-2 mb-2">
+            <div>
+              <h2 class="text-base font-extrabold text-main" id="analyticsClientTitle">Аналитика</h2>
+              <p class="text-xs text-sub">Сводка выполненных упражнений и тоннажа по дням</p>
+            </div>
+            <button id="btnExportFromAnalytics" type="button" class="px-3 py-2 rounded-2xl accent-btn text-xs font-extrabold">
+              📥 Экспорт .xlsx
+            </button>
+          </div>
+          <div id="analyticsMetricsGrid" class="grid grid-cols-2 sm:grid-cols-4 gap-2 mb-3"></div>
+          <div id="analyticsDaysBreakdown" class="flex flex-col gap-2"></div>
+        </section>
+      </div>
+
+      <!-- TAB 5: ПРОФИЛЬ -->
+      <div id="tabViewProfile" class="hidden flex-col gap-3">
+        <section class="glass-panel rounded-3xl p-4">
+          <h2 class="text-base font-extrabold text-main mb-2">Режим оформления Liquid Glass</h2>
+          <div class="grid grid-cols-2 gap-2.5">
+            <button id="btnSelectDayTheme" type="button" class="p-3 rounded-2xl glass-subbox text-left transition">
+              <div class="font-extrabold text-xs text-main">☀️ Soft Glass (Дневной)</div>
+              <div class="text-[11px] text-sub mt-0.5">Молочно-белый фон с мятными и голубыми акцентами</div>
+            </button>
+            <button id="btnSelectNightTheme" type="button" class="p-3 rounded-2xl glass-subbox text-left transition">
+              <div class="font-extrabold text-xs text-main">🌙 Midnight Glass (Ночной)</div>
+              <div class="text-[11px] text-sub mt-0.5">Графитово-синий фон с холодным синим свечением</div>
+            </button>
+          </div>
+        </section>
+
+        <section class="glass-panel rounded-3xl p-4">
+          <h3 class="text-sm font-extrabold text-main mb-2">Управление базой данных</h3>
+          <p class="text-xs text-sub mb-3">Все введённые веса и RPE сохраняются автоматически. Вы можете в любой момент выгрузить данные в Excel или полностью очистить карточки клиентов.</p>
+          <div class="flex items-center gap-2">
+            <button id="btnProfileExportXlsx" type="button" class="flex-1 py-2.5 px-3 rounded-2xl accent-solid-btn text-xs font-extrabold">
+              📥 Выгрузить все данные в Excel (.xlsx)
+            </button>
+            <button id="btnProfileClearAll" type="button" class="py-2.5 px-3 rounded-2xl glass-subbox text-rose-500 text-xs font-extrabold">
+              🗑 Очистить всех клиентов
+            </button>
+          </div>
+        </section>
+      </div>
+
+    </main>
+
+    <!-- FLOATING UNDO TOAST -->
+    <div id="undoToast" class="hidden fixed bottom-20 left-1/2 -translate-x-1/2 w-[92%] max-w-md z-40 glass-panel-strong rounded-2xl px-3.5 py-2.5 flex items-center justify-between gap-2">
+      <div class="flex items-center gap-2 text-xs text-main font-medium truncate">
+        <span class="accent-text font-extrabold">✓</span>
+        <span id="undoToastMessage" class="truncate">Сохранено</span>
+      </div>
+      <button id="btnUndoAction" type="button" class="px-3 py-1 rounded-xl accent-pill font-bold text-xs shrink-0 active:scale-95 transition">
+        ↶ Отменить
+      </button>
+    </div>
+
+    <!-- BOTTOM LIQUID GLASS NAVIGATION BAR -->
+    <nav class="fixed bottom-0 left-1/2 -translate-x-1/2 w-full max-w-xl z-30 px-3 pb-2.5 pt-1.5" style="background: var(--nav-glass); backdrop-filter: blur(24px); -webkit-backdrop-filter: blur(24px); border-top: 1px solid var(--glass-stroke);">
+      <div class="grid grid-cols-5 gap-1">
+        <button type="button" data-nav-tab="workouts" class="nav-tab-btn flex flex-col items-center justify-center py-1 rounded-2xl transition">
+          <svg class="w-5 h-5 mb-0.5" fill="currentColor" viewBox="0 0 24 24"><path d="M12 3l9 8h-3v9h-5v-6H11v6H6v-9H3l9-8z"/></svg>
+          <span class="text-[10px] font-bold">Тренировки</span>
+        </button>
+        <button type="button" data-nav-tab="tables" class="nav-tab-btn flex flex-col items-center justify-center py-1 rounded-2xl transition">
+          <svg class="w-5 h-5 mb-0.5" fill="currentColor" viewBox="0 0 24 24"><path d="M4 4h16a2 2 0 012 2v12a2 2 0 01-2 2H4a2 2 0 01-2-2V6a2 2 0 012-2zm0 4v4h7V8H4zm9 0v4h7V8h-7zm-9 6v4h7v-4H4zm9 0v4h7v-4h-7z"/></svg>
+          <span class="text-[10px] font-semibold">Таблицы</span>
+        </button>
+        <button type="button" data-nav-tab="clients" class="nav-tab-btn flex flex-col items-center justify-center py-1 rounded-2xl transition">
+          <svg class="w-5 h-5 mb-0.5" fill="currentColor" viewBox="0 0 24 24"><path d="M12 12a5 5 0 100-10 5 5 0 000 10zm0 2c-5.33 0-8 2.67-8 4v2h16v-2c0-1.33-2.67-4-8-4z"/></svg>
+          <span class="text-[10px] font-semibold">Клиенты</span>
+        </button>
+        <button type="button" data-nav-tab="analytics" class="nav-tab-btn flex flex-col items-center justify-center py-1 rounded-2xl transition">
+          <svg class="w-5 h-5 mb-0.5" fill="currentColor" viewBox="0 0 24 24"><path d="M5 12h3v8H5v-8zm5.5-6h3v14h-3V6zm5.5 4h3v10h-3V10z"/></svg>
+          <span class="text-[10px] font-semibold">Аналитика</span>
+        </button>
+        <button type="button" data-nav-tab="profile" class="nav-tab-btn flex flex-col items-center justify-center py-1 rounded-2xl transition">
+          <svg class="w-5 h-5 mb-0.5" fill="currentColor" viewBox="0 0 24 24"><path d="M12 12a4 4 0 100-8 4 4 0 000 8zm0 2c-4.42 0-8 1.79-8 4v2h16v-2c0-2.21-3.58-4-8-4z"/></svg>
+          <span class="text-[10px] font-semibold">Профиль</span>
+        </button>
+      </div>
+    </nav>
+
+  </div>
+
+  <!-- =========================================================================
+       MODAL 1: UNIVERSAL TABLE IMPORT WIZARD
+       ========================================================================= -->
+  <div id="modalImport" class="hidden fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-end sm:items-center justify-center p-0 sm:p-4">
+    <div class="glass-panel-strong rounded-t-3xl sm:rounded-3xl w-full max-w-lg max-h-[92vh] flex flex-col overflow-hidden">
+      <div class="p-4 border-b flex items-center justify-between" style="border-color: var(--glass-stroke);">
+        <div>
+          <h2 class="text-base font-extrabold text-main">Импорт программы из таблицы</h2>
+          <p id="importStepIndicator" class="text-xs accent-text font-semibold">Поддержка любых таблиц (.xlsx, .xls, .csv)</p>
+        </div>
+        <button id="btnCloseImportModal" type="button" class="w-8 h-8 rounded-xl glass-subbox text-main font-bold">✕</button>
+      </div>
+
+      <div class="p-4 overflow-y-auto flex flex-col gap-3 text-xs">
+        <div id="importStep1" class="flex flex-col gap-3">
+          <div class="p-3.5 rounded-2xl glass-subbox">
+            <label class="block text-xs font-bold text-main mb-1">Имя клиента (если не заполнено — берётся из названия файла):</label>
+            <input id="importClientNameInput" type="text" placeholder="Например: Евгений..." class="w-full px-3 py-2 rounded-xl glass-panel text-xs text-main focus:outline-none mb-3" />
+
+            <label class="flex flex-col items-center justify-center p-5 rounded-2xl glass-panel border-2 border-dashed cursor-pointer hover:opacity-95 transition" style="border-color: var(--accent-border);">
+              <span class="text-2xl mb-1">📊</span>
+              <span class="font-extrabold text-sm text-main">Выбрать файл таблицы (.xlsx, .xls, .csv)</span>
+              <span class="text-[11px] text-sub mt-1 text-center">Автоматически распознаёт дни недели (Понедельник..Суббота / День 1..N), повторы, отдых и переносит заполненные веса</span>
+              <input id="fileInputImportModal" type="file" accept=".xlsx,.xls,.csv,.tsv,.txt,.doc,.docx" class="hidden" />
+            </label>
+          </div>
+        </div>
+
+        <div id="importStep2" class="hidden flex-col gap-3">
+          <div id="importMappingCard" class="p-3.5 rounded-2xl glass-subbox"></div>
+          <div id="importValidationCard" class="p-3.5 rounded-2xl glass-subbox"></div>
+          <div id="importResumeSummaryCard" class="p-3.5 rounded-2xl accent-pill"></div>
+
+          <div class="flex items-center justify-between gap-2 pt-1">
+            <button id="btnImportBackTo1" type="button" class="px-4 py-2.5 rounded-2xl glass-subbox text-main font-bold">← Назад</button>
+            <button id="btnConfirmImportAction" type="button" class="flex-1 py-2.5 px-4 rounded-2xl accent-solid-btn font-extrabold text-xs transition">
+              ✓ Загрузить программу клиента
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- =========================================================================
+       MODAL 2: QUICK EDIT CLIENT & CURRENT EXERCISE (Pencil Button ✎)
+       ========================================================================= -->
+  <div id="modalQuickEdit" class="hidden fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-end sm:items-center justify-center p-0 sm:p-4">
+    <div class="glass-panel-strong rounded-t-3xl sm:rounded-3xl w-full max-w-md flex flex-col overflow-hidden">
+      <div class="p-4 border-b flex items-center justify-between" style="border-color: var(--glass-stroke);">
+        <h2 class="text-base font-extrabold text-main">Редактирование карточки (✎)</h2>
+        <button id="btnCloseQuickEditModal" type="button" class="w-8 h-8 rounded-xl glass-subbox text-main font-bold">✕</button>
+      </div>
+      <div class="p-4 flex flex-col gap-3 text-xs">
+        <div>
+          <label class="block font-bold text-sub mb-1">Имя клиента:</label>
+          <input id="editClientNameInput" type="text" class="w-full px-3 py-2 rounded-xl glass-subbox text-main font-semibold focus:outline-none" />
+        </div>
+        <div>
+          <label class="block font-bold text-sub mb-1">Текущее упражнение:</label>
+          <input id="editExerciseNameInput" type="text" class="w-full px-3 py-2 rounded-xl glass-subbox text-main font-semibold focus:outline-none" />
+        </div>
+        <div class="grid grid-cols-2 gap-2">
+          <div>
+            <label class="block font-bold text-sub mb-1">Схема (подх × повт):</label>
+            <input id="editExerciseSchemeInput" type="text" placeholder="3×6–8" class="w-full px-3 py-2 rounded-xl glass-subbox text-main font-semibold focus:outline-none" />
+          </div>
+          <div>
+            <label class="block font-bold text-sub mb-1">Отдых (для таймера):</label>
+            <input id="editExerciseRestInput" type="text" placeholder="3 мин или 90 сек" class="w-full px-3 py-2 rounded-xl glass-subbox text-main font-semibold focus:outline-none" />
+          </div>
+        </div>
+        <div>
+          <label class="block font-bold text-sub mb-1">Интенсификация (дроп-сет, кластер, частичные — если есть):</label>
+          <input id="editExerciseIntensificationInput" type="text" placeholder="Например: Одинарный дроп-сет / Отдых-пауза (1 кластер)" class="w-full px-3 py-2 rounded-xl glass-subbox text-main font-semibold focus:outline-none" />
+        </div>
+        <div class="flex items-center justify-between gap-2 pt-2 border-t" style="border-color: var(--glass-stroke);">
+          <button id="btnDeleteCurrentClientInModal" type="button" class="px-3 py-2.5 rounded-2xl glass-subbox text-rose-500 font-extrabold text-xs">
+            🗑 Удалить клиента
+          </button>
+          <button id="btnSaveQuickEdit" type="button" class="flex-1 py-2.5 rounded-2xl accent-solid-btn font-extrabold text-xs">
+            ✓ Сохранить
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // =========================================================================
+    // 1. PARSING HELPERS: STRICT REST TIMER (NO UNNEEDED TRANSITION!) & SCHEME
+    // =========================================================================
+
+    /**
+     * Parses rest text from spreadsheet cell (e.g. "3 мин", "90 сек", "2.5 мин", "4 мин", "15-20 сек переход к A2").
+     * IMPORTANT RULE FROM USER:
+     * If there is NO transition needed (no "переход" in text and not a superset),
+     * hasTransition MUST be false so NO "15с переход" button is shown!
+     */
+    function isValidRestTimeString(str) {
+      const s = String(str || "").toLowerCase().trim();
+      if (!s || s === "—" || s === "-") return false;
+      if (/rpe\s*\d/i.test(s) || /^\d+\s*[xхXХ*×]/i.test(s)) return false;
+      return /\d+(?:[.,]\d+)?\s*(?:[-–—]\s*\d+(?:[.,]\d+)?)?\s*(?:мин|сек|min|sec|с\b|м\b)/i.test(s) || /^\d{2,3}$/.test(s);
+    }
+
+    function parseRestTimersFromText(restText, isSuperset) {
+      let raw = String(restText || "").trim();
+      if (!isValidRestTimeString(raw)) {
+        raw = "90 сек";
+      }
+      const low = raw.toLowerCase().replace(",", ".");
+      let hasTransition = false;
+      let transitionSec = 0;
+      let restSec = 90;
+      let restDisplayLabel = raw;
+
+      const isMinutes = low.includes("мин") || low.includes("min") || /\bм\b/.test(low);
+      const numbers = (low.match(/\d+(?:\.\d+)?/g) || []).map(Number).filter(n => !isNaN(n) && n > 0);
+
+      if (low.includes("переход") || isSuperset) {
+        hasTransition = true;
+        if (low.includes("переход") && numbers.length > 0) {
+          transitionSec = Math.round(isMinutes ? numbers[0] * 60 : numbers[0]);
+          restSec = 90;
+        } else {
+          transitionSec = 20;
+          restSec = numbers.length > 0 ? Math.round(isMinutes ? numbers[0] * 60 : numbers[0]) : 90;
+        }
+      } else if (numbers.length > 0) {
+        // Pure rest time (e.g. "3 мин" -> 180s, "2.5 мин" -> 150s, "90 сек" -> 90s, "60-90 сек" -> 90s)
+        hasTransition = false;
+        const val = numbers[numbers.length - 1];
+        restSec = Math.round(isMinutes ? val * 60 : val);
+      }
+
+      return {
+        hasTransition,
+        transitionSec,
+        restSec,
+        restDisplayLabel: `${restSec}с (${raw})`
+      };
+    }
+
+    /**
+     * Parses scheme cell and combines it properly with the dedicated "Повторы" column!
+     * Fixes the bug where "3 x" in Week column + "6-8" in Reps column produced "3 × 3 x".
+     * Now "3 x" + fallbackReps "6-8" cleanly produces sets=3, reps="6-8", scheme="3×6-8"!
+     */
+    function parseSchemeAndRpeCell(cellText, colRepsValue) {
+      const str = String(cellText || "").trim();
+      const cleanColReps = String(colRepsValue || "").trim();
+
+      let rpe = null;
+      const rpeMatch = str.match(/RPE\s*(\d+(?:[.,]\d+)?)/i);
+      if (rpeMatch) {
+        rpe = Math.round(Number(rpeMatch[1].replace(",", ".")));
+      }
+
+      // Extract intensification suffix if present (e.g. "+ Одинарный дроп-сет", "+ Отдых-пауза (1 кластер)", "+ Двойной дроп + Частичные", "+ Мио-повторения")
+      let intensification = "";
+      let mainPart = str;
+
+      // Pattern A: Anything after "RPE <num> +" or after first "+" following sets/RPE
+      const afterRpePlus = str.match(/RPE\s*\d+(?:[.,]\d+)?\s*\)?\s*\+\s*(.+)$/i);
+      if (afterRpePlus && afterRpePlus[1]) {
+        intensification = afterRpePlus[1].trim();
+        mainPart = str.slice(0, afterRpePlus.index + afterRpePlus[0].indexOf("+")).trim();
+      } else {
+        // Pattern B: "+ <intensifier keyword>" anywhere in the cell
+        const plusSplit = str.match(/^([^+]+?)\s*\+\s*(.*(?:дроп|кластер|отдых[- ]пауз|частичн|мио|негатив|пауз|стрип|отказ|форсир).*)$/i);
+        if (plusSplit) {
+          mainPart = plusSplit[1].trim();
+          intensification = plusSplit[2].trim();
+        }
+      }
+
+      // Remove "(RPE ...)" or "RPE ..." from mainPart
+      const withoutRpe = mainPart
+        .replace(/\(?\s*RPE\s*\d+(?:[.,]\d+)?\s*\)?/gi, "")
+        .replace(/[,;|/+]+$/, "")
+        .trim();
+
+      let sets = 3;
+      let reps = (cleanColReps && cleanColReps !== "—" && cleanColReps !== "-") ? cleanColReps : "8–12";
+
+      // Case 1: Full "3х8-10" or "4x12" inside the week cell (where second part starts with digits and is NOT RPE)
+      const fullMultMatch = withoutRpe.match(/^(\d+)\s*[xхXХ*×]\s*(\d+(?:\s*[-–—]\s*\d+)?)$/);
+      if (fullMultMatch) {
+        sets = parseInt(fullMultMatch[1], 10) || 3;
+        reps = fullMultMatch[2].trim();
+      } else {
+        // Case 2: Week cell has "4 × RPE 9" -> withoutRpe is "4 ×" or "4", while reps are in the "Повторы" column!
+        const firstDigit = withoutRpe.match(/^(\d+)/);
+        if (firstDigit) {
+          sets = parseInt(firstDigit[1], 10) || 3;
+        }
+      }
+
+      return {
+        sets,
+        reps,
+        scheme: `${sets}×${reps}`,
+        rpe: rpe !== null ? rpe : 8,
+        intensification
+      };
+    }
+
+    // =========================================================================
+    // 2. INITIAL PROGRAM (Matches User's 5-Day Split Screenshot with Empty Weights)
+    // =========================================================================
+    function createInitial5DaySplitClient() {
+      // Built directly from the user's screenshot 3 (Понедельник, Среда, Четверг, Пятница, Суббота; Вторник/Воскресенье skipped as rest days; NO pre-filled weights!)
+      const makeEmptyWeeks = (setsCount, repsRange, planRpe = 8) => {
+        const weeks = {};
+        const rpeProg = { 1: planRpe, 2: 8, 3: 8, 4: 9, 5: 9, 6: 6 };
+        for (let w = 1; w <= 6; w++) {
+          const s = w === 6 ? 2 : setsCount;
+          const r = rpeProg[w] || planRpe;
+          weeks[w] = {
+            planSets: s,
+            planReps: repsRange,
+            planScheme: `${s}×${repsRange}`,
+            planRpe: r,
+            weight: "", // Strictly empty unless specified in table!
+            actualSets: s,
+            actualReps: repsRange,
+            actualRpe: r,
+            status: "pending",
+            skipReason: ""
+          };
+        }
+        return weeks;
+      };
+
+      return {
+        id: "client_split_default",
+        name: "План 5 дней (ПН–СБ)",
+        subtitle: "Сводная: Недели 1–6 (без старых весов)",
+        totalWeeks: 6,
+        pinned: true,
+        activeWeek: 1,
+        activeDay: 1,
+        allowedRpeValues: [6, 7, 8, 9, 10],
+        days: {
+          1: {
+            title: "Понедельник — Плечи и Верх",
+            shortTitle: "Понедельник",
+            skippedWeeks: {},
+            exercises: [
+              { id: "d1_1", code: "", group: "", zone: "Плечи", name: "1. Армейский жим в Смите (или жим гантелей сидя)", muscle: "Плечи", rest: "3 мин", weeks: makeEmptyWeeks(3, "6–8", 7) },
+              { id: "d1_2", code: "", group: "", zone: "Средняя дельта", name: "2. Махи гантелями стоя / сидя (средняя дельта)", muscle: "Средняя дельта", rest: "90 сек", weeks: makeEmptyWeeks(3, "10–12", 8) },
+              { id: "d1_3", code: "", group: "", zone: "Плечи", name: "3. Жим в Хаммере на плечи (параллельный хват)", muscle: "Плечи", rest: "2.5 мин", weeks: makeEmptyWeeks(3, "8–10", 7) },
+              { id: "d1_4", code: "", group: "", zone: "Средняя дельта", name: "4. Отведения руки в сторону на нижнем блоке", muscle: "Средняя дельта", rest: "60 сек", weeks: makeEmptyWeeks(3, "12–15", 8) },
+              { id: "d1_5", code: "", group: "", zone: "Задняя дельта", name: "5. Обратные разведения в Pec Deck (задняя дельта)", muscle: "Задняя дельта", rest: "90 сек", weeks: makeEmptyWeeks(4, "12–15", 8) },
+              { id: "d1_6", code: "", group: "", zone: "Задняя дельта", name: "6. Тяга каната к лицу (Face Pull)", muscle: "Задняя дельта", rest: "90 сек", weeks: makeEmptyWeeks(3, "12–15", 8) },
+              { id: "d1_7", code: "", group: "", zone: "Трапеция", name: "7. Шраги с гантелями или в Смите", muscle: "Трапеция", rest: "90 сек", weeks: makeEmptyWeeks(3, "10–12", 8) }
+            ]
+          },
+          2: {
+            title: "Среда — Задняя цепь и Ноги",
+            shortTitle: "Среда",
+            skippedWeeks: {},
+            exercises: [
+              { id: "d2_1", code: "", group: "", zone: "База", name: "1. Становая тяга (классика или с плинтов)", muscle: "Спина / Бицепс бедра", rest: "4 мин", weeks: makeEmptyWeeks(3, "5–6", 7) },
+              { id: "d2_2", code: "", group: "", zone: "Бицепс бедра", name: "2. Сгибания голени лежа в тренажере", muscle: "Бицепс бедра", rest: "2 мин", weeks: makeEmptyWeeks(3, "8–12", 8) },
+              { id: "d2_3", code: "", group: "", zone: "Бицепс бедра", name: "3. Румынская тяга с гантелями (акцент на растяжение)", muscle: "Бицепс бедра", rest: "2.5 мин", weeks: makeEmptyWeeks(3, "8–10", 7) },
+              { id: "d2_4", code: "", group: "", zone: "Бицепс бедра", name: "4. Сгибания ног сидя в тренажере", muscle: "Бицепс бедра", rest: "90 сек", weeks: makeEmptyWeeks(3, "12–15", 8) },
+              { id: "d2_5", code: "", group: "", zone: "Ягодицы", name: "5. Гиперэкстензия с отягощением (с круглой спиной)", muscle: "Ягодицы", rest: "90 сек", weeks: makeEmptyWeeks(3, "12–15", 8) },
+              { id: "d2_6", code: "", group: "", zone: "Икры", name: "6. Подъем на носки стоя в тренажере (икроножная)", muscle: "Икры", rest: "90 сек", weeks: makeEmptyWeeks(3, "10–12", 8) },
+              { id: "d2_7", code: "", group: "", zone: "Икры", name: "7. Подъем на носки сидя (камбаловидная)", muscle: "Икры", rest: "60 сек", weeks: makeEmptyWeeks(3, "12–15", 8) }
+            ]
+          },
+          3: {
+            title: "Четверг — Грудь и Трицепс",
+            shortTitle: "Четверг",
+            skippedWeeks: {},
+            exercises: [
+              { id: "d3_1", code: "", group: "", zone: "Грудь", name: "1. Жим на наклонной скамье (30°)", muscle: "Грудь", rest: "3 мин", weeks: makeEmptyWeeks(3, "6–8", 7) },
+              { id: "d3_2", code: "", group: "", zone: "Грудь", name: "2. Горизонтальный жим в Хаммере", muscle: "Грудь", rest: "2.5 мин", weeks: makeEmptyWeeks(3, "8–10", 8) },
+              { id: "d3_3", code: "", group: "", zone: "Грудь / Трицепс", name: "3. Отжимания на брусьях с весом", muscle: "Грудь / Трицепс", rest: "2 мин", weeks: makeEmptyWeeks(3, "8–10", 8) },
+              { id: "d3_4", code: "", group: "", zone: "Грудь", name: "4. Сведения в кроссовере или Pec Deck", muscle: "Грудь", rest: "90 сек", weeks: makeEmptyWeeks(3, "12–15", 8) },
+              { id: "d3_5", code: "", group: "", zone: "Средняя дельта", name: "5. Махи в тренажере на среднюю дельту", muscle: "Средняя дельта", rest: "60 сек", weeks: makeEmptyWeeks(3, "12–15", 8) },
+              { id: "d3_6", code: "", group: "", zone: "Трицепс", name: "6. Разгибания со штангой/канатом", muscle: "Трицепс", rest: "90 сек", weeks: makeEmptyWeeks(3, "12–15", 8) }
+            ]
+          },
+          4: {
+            title: "Пятница — Спина и Руки",
+            shortTitle: "Пятница",
+            skippedWeeks: {},
+            exercises: [
+              { id: "d4_1", code: "", group: "", zone: "Спина", name: "1. Подтягивания широким хватом (с весом / своим)", muscle: "Широчайшие", rest: "3 мин", weeks: makeEmptyWeeks(3, "6–10", 7) },
+              { id: "d4_2", code: "", group: "", zone: "Спина", name: "2. Тяга Т-грифа с упором грудью", muscle: "Толщина спины", rest: "2.5 мин", weeks: makeEmptyWeeks(3, "8–10", 8) },
+              { id: "d4_3", code: "", group: "", zone: "Спина", name: "3. Тяга верхнего блока узким хватом", muscle: "Широчайшие", rest: "2 мин", weeks: makeEmptyWeeks(3, "10–12", 8) },
+              { id: "d4_4", code: "", group: "", zone: "Задняя дельта", name: "4. Отведения назад в кроссовере (задняя дельта)", muscle: "Задняя дельта", rest: "60 сек", weeks: makeEmptyWeeks(3, "12–15", 8) },
+              { id: "d4_5", code: "", group: "", zone: "Руки", name: "5. Подъем EZ-штанги + Французский жим", muscle: "Бицепс + Трицепс", rest: "2 мин", weeks: makeEmptyWeeks(3, "8–10", 8) },
+              { id: "d4_6", code: "", group: "", zone: "Руки", name: "6. Молотки с гантелями + Блок на трицепс", muscle: "Бицепс + Трицепс", rest: "90 сек", weeks: makeEmptyWeeks(3, "10–12", 8) }
+            ]
+          },
+          5: {
+            title: "Суббота — Квадрицепс и Кор",
+            shortTitle: "Суббота",
+            skippedWeeks: {},
+            exercises: [
+              { id: "d5_1", code: "", group: "", zone: "Ноги", name: "1. Приседания со штангой или Гакк-приседания", muscle: "Квадрицепс", rest: "3.5 мин", weeks: makeEmptyWeeks(3, "6–8", 7) },
+              { id: "d5_2", code: "", group: "", zone: "Ноги", name: "2. Жим ногами (узко и широко)", muscle: "Квадрицепс", rest: "3 мин", weeks: makeEmptyWeeks(3, "10–12", 8) },
+              { id: "d5_3", code: "", group: "", zone: "Ноги", name: "3. Болгарские сплит-приседания", muscle: "Квадрицепс / Ягодицы", rest: "2.5 мин", weeks: makeEmptyWeeks(3, "10–12", 8) },
+              { id: "d5_4", code: "", group: "", zone: "Ноги", name: "4. Разгибания голени сидя", muscle: "Квадрицепс", rest: "90 сек", weeks: makeEmptyWeeks(3, "12–15", 8) },
+              { id: "d5_5", code: "", group: "", zone: "Приводящие", name: "5. Сведения ног в тренажере (приводящие)", muscle: "Приводящие", rest: "90 сек", weeks: makeEmptyWeeks(3, "12–15", 8) },
+              { id: "d5_6", code: "", group: "", zone: "Пресс", name: "6. Скручивания на блоке («Молитва») + Подъем ног", muscle: "Кор / Пресс", rest: "60 сек", weeks: makeEmptyWeeks(3, "12–15", 8) }
+            ]
+          }
+        }
+      };
+    }
+
+    // =========================================================================
+    // 3. UNIVERSAL SPREADSHEET PARSER (With Multi-Pattern Day Splitting!)
+    // =========================================================================
+    const DAY_OF_WEEK_REGEX = /^(понедельник|вторник|среда|четверг|пятница|суббота|воскресенье|пн|вт|ср|чт|пт|сб|вс|день\s*\d+|тренировка\s*\d+|day\s*\d+)/i;
+
+    function parseAnySpreadsheetRows(rawRows, fileName, customClientName) {
+      const warnings = [];
+      const rows = (rawRows || []).filter(r => Array.isArray(r) && r.some(cell => String(cell ?? "").trim() !== ""));
+
+      if (rows.length === 0) {
+        throw new Error("Таблица пуста или не содержит строк с данными.");
+      }
+
+      // 1. Detect Client Name
+      let detectedName = (customClientName || "").trim();
+      if (!detectedName) {
+        for (let r = 0; r < Math.min(5, rows.length); r++) {
+          const joined = rows[r].map(c => String(c ?? "").trim()).join(" ");
+          const m = joined.match(/(?:дневник|клиент|сводная)\s*[—:\-]?\s*([А-ЯЁA-Zа-яёa-z0-9_ +\-]+)/i);
+          if (m && m[1]) {
+            detectedName = m[1].split("(")[0].split("|")[0].trim();
+            break;
+          }
+        }
+      }
+      if (!detectedName) {
+        detectedName = fileName
+          ? fileName.replace(/\.[^.]+$/, "").replace(/Тренировочный дневник\s*[—\-]?\s*/i, "").split("(")[0].trim()
+          : "Программа из таблицы";
+      }
+
+      // 2. Find Header Row (Strictly ignore long description sentences like "где интенсификаторы (дроп-сеты, отдых-пауза...)")
+      let headerRowIndex = -1;
+      let bestScore = 0;
+
+      for (let r = 0; r < Math.min(20, rows.length); r++) {
+        const rowStrs = rows[r].map(c => String(c ?? "").toLowerCase().trim());
+        const nonEmptyCount = rowStrs.filter(Boolean).length;
+        if (nonEmptyCount < 2) continue; // A real table header row always has at least 2 columns
+
+        let score = 0;
+        rowStrs.forEach(cell => {
+          if (!cell || cell.length > 42) return; // Ignore long description paragraphs!
+          if (cell.includes("упражнен") || cell.includes("exercise") || cell.includes("назван")) score += 6;
+          if (cell === "день недели" || cell === "день" || cell === "тренировка") score += 4;
+          if (cell === "повторы" || cell === "повторения" || cell === "схема" || cell === "подходы") score += 4;
+          if (cell === "отдых" || cell.startsWith("отдых") || cell === "пауза" || cell === "rest") score += 5;
+          if (cell.includes("недел") || cell.includes("нед") || cell.includes("week") || /^н\d+/i.test(cell)) score += 3;
+          if (cell.includes("вес") || cell.includes("weight") || cell === "rpe") score += 2;
+        });
+        if (score > bestScore) {
+          bestScore = score;
+          headerRowIndex = r;
+        }
+      }
+
+      const headers = headerRowIndex >= 0
+        ? rows[headerRowIndex].map(c => String(c ?? "").trim())
+        : rows[0].map((_, idx) => `Колонка ${idx + 1}`);
+
+      const dataStartRow = headerRowIndex >= 0 ? headerRowIndex + 1 : 0;
+
+      // 3. Map Columns cleanly + Content-based verification for Rest, Reps, and Weeks!
+      let colDay = -1;
+      let colExercise = -1;
+      let colMuscle = -1;
+      let colReps = -1;
+      let colSets = -1;
+      let colRest = -1;
+      let colStandaloneRpe = -1;
+      const weekPlanCols = {};
+      const weekWeightCols = {};
+
+      headers.forEach((h, idx) => {
+        const low = h.toLowerCase().trim();
+        if (!low || low.length > 42) return; // Never map a long note cell as a column header!
+
+        if (colDay === -1 && (low.includes("день") || low === "дн" || low === "day" || low.includes("сплит"))) {
+          colDay = idx;
+        } else if (colExercise === -1 && (low.includes("упражнен") || low.includes("exercise") || low.includes("индекс") || low.includes("наименован"))) {
+          colExercise = idx;
+        } else if (colMuscle === -1 && (low.includes("мышц") || low.includes("групп") || low.includes("muscle"))) {
+          colMuscle = idx;
+        } else if (colReps === -1 && (low === "повторы" || low.includes("повтор") || low.includes("reps"))) {
+          colReps = idx;
+        } else if (colSets === -1 && (low === "подходы" || low === "sets")) {
+          colSets = idx;
+        } else if (colRest === -1 && (low === "отдых" || low.startsWith("отдых") || low === "пауза" || low === "время отдыха" || low === "rest")) {
+          colRest = idx;
+        } else if (low.includes("недел") || low.includes("нед") || low.includes("week") || /^н\d+/i.test(low)) {
+          const wMatch = low.match(/(\d+)/);
+          const wNum = wMatch ? parseInt(wMatch[1], 10) : (Object.keys(weekPlanCols).length + 1);
+          if (low.includes("вес") || low.includes("weight") || low.includes("кг")) {
+            weekWeightCols[wNum] = idx;
+          } else {
+            weekPlanCols[wNum] = idx;
+          }
+        } else if (low.includes("вес") || low.includes("weight") || low === "кг" || low.includes("рабочий вес")) {
+          const existingW = Object.keys(weekWeightCols).length;
+          weekWeightCols[existingW + 1] = idx;
+        } else if (low === "rpe" || low.includes("тяжесть") || low.includes("усилие")) {
+          colStandaloneRpe = idx;
+        }
+      });
+
+      // Content-based verification & auto-detection for Rest column ("3 мин", "90 сек", "2.5 мин", "60 сек")
+      // Guarantees that even if headers are merged/shifted, colRest ALWAYS points to the column with "мин / сек" and NEVER to a "4 x RPE 9" column!
+      const maxCols = Math.max(...rows.slice(dataStartRow, dataStartRow + 25).map(r => r.length), headers.length);
+      let bestRestCol = -1;
+      let bestRestHits = 0;
+
+      for (let c = 0; c < maxCols; c++) {
+        let timeHits = 0;
+        let rpeHits = 0;
+        for (let r = dataStartRow; r < Math.min(dataStartRow + 25, rows.length); r++) {
+          const val = String((rows[r] && rows[r][c]) ?? "").toLowerCase().trim();
+          if (!val) continue;
+          if (/rpe\s*\d/i.test(val) || /^\d+\s*[xхXХ*×]\s*(?:rpe|\d)/i.test(val)) {
+            rpeHits++;
+          } else if (/\d+(?:[.,]\d+)?\s*(?:[-–—]\s*\d+(?:[.,]\d+)?)?\s*(?:мин|сек|min|sec|с|м)/i.test(val)) {
+            timeHits++;
+          }
+        }
+        if (timeHits > bestRestHits && rpeHits === 0) {
+          bestRestHits = timeHits;
+          bestRestCol = c;
+        }
+      }
+      if (bestRestCol !== -1) {
+        colRest = bestRestCol;
+      }
+
+      // Also auto-detect Week Plan columns by content if they had merged headers (e.g. "3 x RPE 7", "4 x RPE 9")
+      if (Object.keys(weekPlanCols).length <= 1) {
+        let autoWeekNum = 1;
+        for (let c = 0; c < maxCols; c++) {
+          if (c === colDay || c === colExercise || c === colMuscle || c === colReps || c === colRest) continue;
+          let schemeRpeHits = 0;
+          for (let r = dataStartRow; r < Math.min(dataStartRow + 20, rows.length); r++) {
+            const val = String((rows[r] && rows[r][c]) ?? "").trim();
+            if (/rpe\s*\d/i.test(val) || /^\d+\s*[xхXХ*×]/i.test(val)) {
+              schemeRpeHits++;
+            }
+          }
+          if (schemeRpeHits >= 2) {
+            weekPlanCols[autoWeekNum] = c;
+            autoWeekNum++;
+          }
+        }
+      }
+
+      // Auto-detect if Col 0 contains day-of-week names ("ПОНЕДЕЛЬНИК", "СРЕДА") and Col 1 contains exercises
+      if (colDay === -1 || colExercise === -1) {
+        for (let r = dataStartRow; r < Math.min(dataStartRow + 15, rows.length); r++) {
+          const c0 = String(rows[r][0] ?? "").trim();
+          const c1 = String(rows[r][1] ?? "").trim();
+          if (DAY_OF_WEEK_REGEX.test(c0) && c1.length > 2) {
+            colDay = 0;
+            if (colExercise === -1 || colExercise === 0) colExercise = 1;
+            break;
+          }
+        }
+      }
+
+      if (colExercise === -1) {
+        colExercise = colDay === 0 ? 1 : 0;
+      }
+
+      const detectedWeeksCount = Math.max(
+        1,
+        ...Object.keys(weekPlanCols).map(Number),
+        ...Object.keys(weekWeightCols).map(Number)
+      );
+      const totalWeeks = Math.min(12, Math.max(1, detectedWeeksCount === 1 ? 6 : detectedWeeksCount));
+
+      // 4. Parse Rows and Split into Days Accurately!
+      const daysMap = {};
+      let currentDayIndex = 0;
+      let currentDayLabel = "";
+      let lastExerciseNumber = 0;
+      const rpeSetFromTable = new Set();
+      let totalExercisesParsed = 0;
+      let completedCount = 0;
+      let firstUnfilledPoint = null;
+
+      const startOrSelectDay = (dayLabelStr) => {
+        const cleanLabel = String(dayLabelStr || "").trim();
+        // Check if a day with this exact label already exists
+        const existingKey = Object.keys(daysMap).find(k => daysMap[k].shortTitle.toLowerCase() === cleanLabel.toLowerCase());
+        if (existingKey) {
+          currentDayIndex = Number(existingKey);
+          return;
+        }
+        currentDayIndex = Object.keys(daysMap).length + 1;
+        currentDayLabel = cleanLabel || `День ${currentDayIndex}`;
+        daysMap[currentDayIndex] = {
+          title: currentDayLabel,
+          shortTitle: currentDayLabel.replace(/^День\s*\d+\s*[—\-:]?\s*/i, "").split("(")[0].trim() || `День ${currentDayIndex}`,
+          skippedWeeks: {},
+          exercises: []
+        };
+      };
+
+      for (let r = dataStartRow; r < rows.length; r++) {
+        const row = rows[r];
+        const nonEmptyCells = row.map(c => String(c ?? "").trim()).filter(Boolean);
+        if (nonEmptyCells.length === 0) continue;
+
+        const dayCellVal = colDay !== -1 ? String(row[colDay] ?? "").trim() : "";
+        const exCellVal = String(row[colExercise] ?? "").trim();
+        const fullRowText = nonEmptyCells.join(" ");
+
+        // Stop on footer reference sections
+        if (/^(шкала rpe|памятка rpe|сводка недельного|обновлённая сводка|профиль и замеры|показатель\s+старт)/i.test(exCellVal) ||
+            /^(шкала rpe|памятка rpe|сводка недельного|обновлённая сводка)/i.test(fullRowText)) {
+          break;
+        }
+
+        // Skip explicit Rest Days ("ДЕНЬ ОТДЫХА", "ОТДЫХ", "ВЫХОДНОЙ", or weekday with "—")
+        if (/день\s+отдыха|выходной|^отдых$/i.test(exCellVal) ||
+            /день\s+отдыха|выходной/i.test(fullRowText) ||
+            (DAY_OF_WEEK_REGEX.test(dayCellVal) && (!exCellVal || exCellVal === "—" || exCellVal === "-"))) {
+          lastExerciseNumber = 0;
+          continue;
+        }
+
+        // Check 1: Full-row Day Divider Banner (e.g., "День 1 — Фулбоди А")
+        const bannerMatch = fullRowText.match(/^(День\s*\d+|Понедельник|Вторник|Среда|Четверг|Пятница|Суббота|Воскресенье)\s*(?:[—\-:]\s*(.+))?$/i);
+        if (bannerMatch && (nonEmptyCells.length === 1 || new Set(nonEmptyCells).size === 1)) {
+          startOrSelectDay(nonEmptyCells[0]);
+          lastExerciseNumber = 0;
+          continue;
+        }
+
+        // Check 2: Dedicated Day Column has a new Day name (e.g. Col A has "ПОНЕДЕЛЬНИК", "СРЕДА", "ЧЕТВЕРГ", "ПЯТНИЦА", "СУББОТА")
+        if (dayCellVal && DAY_OF_WEEK_REGEX.test(dayCellVal)) {
+          const formattedDay = dayCellVal.charAt(0).toUpperCase() + dayCellVal.slice(1).toLowerCase();
+          if (formattedDay.toLowerCase() !== currentDayLabel.toLowerCase()) {
+            startOrSelectDay(formattedDay);
+            lastExerciseNumber = 0;
+          }
+        }
+
+        if (!exCellVal || exCellVal.toLowerCase() === "упражнение") continue;
+
+        // Check 3: Exercise numbering resets back to "1." (e.g. "1. Армейский жим...", then after 7 exercises "1. Становая тяга...")
+        const exNumMatch = exCellVal.match(/^(\d+)\s*[.)]\s*/);
+        const currentExNum = exNumMatch ? parseInt(exNumMatch[1], 10) : null;
+        if (currentExNum === 1 && lastExerciseNumber >= 2 && (!dayCellVal || !DAY_OF_WEEK_REGEX.test(dayCellVal))) {
+          startOrSelectDay(`День ${Object.keys(daysMap).length + 1}`);
+        }
+        if (currentExNum !== null) {
+          lastExerciseNumber = currentExNum;
+        }
+
+        if (currentDayIndex === 0) {
+          startOrSelectDay("День 1");
+        }
+
+        // Parse Superset Code if present
+        let code = "";
+        let group = "";
+        let zone = colMuscle !== -1 ? String(row[colMuscle] ?? "").trim() : "";
+        let exName = exCellVal;
+
+        const supersetMatch = exCellVal.match(/^([A-Za-zА-Яа-я]\d)\s*(?:\(([^)]+)\))?\s*[:.\-]\s*(.+)$/);
+        if (supersetMatch) {
+          code = supersetMatch[1].toUpperCase();
+          group = code.charAt(0);
+          if (supersetMatch[2] && !zone) zone = supersetMatch[2];
+          exName = supersetMatch[3].trim();
+        }
+
+        const repsFromCol = colReps !== -1 ? String(row[colReps] ?? "").trim() : "8–12";
+        const setsFromCol = colSets !== -1 ? (parseInt(String(row[colSets] ?? "3"), 10) || 3) : 3;
+        let restStr = colRest !== -1 ? String(row[colRest] ?? "").trim() : "";
+        if (!isValidRestTimeString(restStr)) {
+          const foundTimeCell = row.map(c => String(c ?? "").trim()).find(c => isValidRestTimeString(c));
+          restStr = foundTimeCell || "90 сек";
+        }
+
+        // Build weeks 1..totalWeeks
+        const weeksObj = {};
+        for (let w = 1; w <= totalWeeks; w++) {
+          const planCol = weekPlanCols[w] ?? weekPlanCols[1];
+          const weightCol = weekWeightCols[w];
+
+          const rawPlanStr = planCol !== undefined ? String(row[planCol] ?? "").trim() : `${setsFromCol}×${repsFromCol}`;
+          const parsedPlan = parseSchemeAndRpeCell(rawPlanStr, repsFromCol);
+
+          if (colStandaloneRpe !== -1 && row[colStandaloneRpe] !== undefined && String(row[colStandaloneRpe]).trim() !== "") {
+            const rVal = Math.round(Number(String(row[colStandaloneRpe]).replace(",", ".")));
+            if (!isNaN(rVal) && rVal >= 1 && rVal <= 10) {
+              parsedPlan.rpe = rVal;
+            }
+          }
+
+          if (parsedPlan.rpe) rpeSetFromTable.add(parsedPlan.rpe);
+
+          // STRICT WEIGHT IMPORT: Only copy weight if it is actually present in the uploaded table! Never invent "50" kg!
+          let rawWeight = weightCol !== undefined ? String(row[weightCol] ?? "").trim() : "";
+          if (rawWeight === "—" || rawWeight === "-") rawWeight = "";
+
+          if (rawWeight) {
+            rawWeight = rawWeight.replace(/кг|kg/gi, "").replace(",", ".").trim();
+            if (rawWeight && isNaN(parseFloat(rawWeight)) && !rawWeight.includes("+") && !/свой|bw/i.test(rawWeight)) {
+              warnings.push(`«${exName.slice(0, 22)}» (Нед ${w}): вес «${rawWeight}» не число — поле оставлено пустым.`);
+              rawWeight = "";
+            }
+          }
+
+          const isCompleted = rawWeight !== "";
+          if (isCompleted) completedCount++;
+
+          weeksObj[w] = {
+            planSets: parsedPlan.sets,
+            planReps: parsedPlan.reps,
+            planScheme: parsedPlan.scheme,
+            planRpe: parsedPlan.rpe,
+            intensification: parsedPlan.intensification || "",
+            weight: rawWeight, // Empty string "" if table has no weight!
+            actualSets: parsedPlan.sets,
+            actualReps: parsedPlan.reps,
+            actualRpe: parsedPlan.rpe,
+            status: isCompleted ? "completed" : "pending",
+            skipReason: ""
+          };
+        }
+
+        daysMap[currentDayIndex].exercises.push({
+          id: `imp_d${currentDayIndex}_${totalExercisesParsed + 1}_${Date.now()}`,
+          code,
+          group,
+          zone: zone || daysMap[currentDayIndex].shortTitle || "Упражнение",
+          name: exName,
+          muscle: zone || daysMap[currentDayIndex].shortTitle || "Упражнение",
+          rest: restStr || "90 сек",
+          weeks: weeksObj
+        });
+        totalExercisesParsed++;
+      }
+
+      // Remove any empty days
+      Object.keys(daysMap).forEach(k => {
+        if (daysMap[k].exercises.length === 0) delete daysMap[k];
+      });
+
+      const sortedDayNums = Object.keys(daysMap).map(Number).sort((a, b) => a - b);
+      if (sortedDayNums.length === 0) {
+        throw new Error("Не удалось распознать тренировочные упражнения в таблице.");
+      }
+
+      // Re-index days cleanly 1..N
+      const cleanDaysMap = {};
+      sortedDayNums.forEach((oldKey, idx) => {
+        cleanDaysMap[idx + 1] = daysMap[oldKey];
+      });
+
+      const finalDayNums = Object.keys(cleanDaysMap).map(Number);
+      for (let w = 1; w <= totalWeeks; w++) {
+        for (const dNum of finalDayNums) {
+          const firstPending = cleanDaysMap[dNum].exercises.find(e => e.weeks[w].status !== "completed");
+          if (firstPending) {
+            firstUnfilledPoint = { week: w, day: dNum, name: firstPending.name };
+            break;
+          }
+        }
+        if (firstUnfilledPoint) break;
+      }
+
+      if (!firstUnfilledPoint) {
+        firstUnfilledPoint = {
+          week: 1,
+          day: 1,
+          name: cleanDaysMap[1].exercises[0].name
+        };
+      }
+
+      const sortedRpes = Array.from(rpeSetFromTable).sort((a, b) => a - b);
+      const allowedRpeValues = sortedRpes.length >= 2 ? sortedRpes : [6, 7, 8, 9, 10];
+
+      const newClient = {
+        id: "client_" + Date.now(),
+        name: detectedName,
+        subtitle: `Дней в неделю: ${finalDayNums.length} • Недель: ${totalWeeks}`,
+        totalWeeks,
+        pinned: true,
+        activeWeek: firstUnfilledPoint.week,
+        activeDay: firstUnfilledPoint.day,
+        allowedRpeValues,
+        days: cleanDaysMap
+      };
+
+      return {
+        client: newClient,
+        report: {
+          daysDetected: finalDayNums.map(d => cleanDaysMap[d].shortTitle).join(", "),
+          mappedCols: {
+            day: colDay !== -1 ? (headers[colDay] || "День недели") : "Авто по структуре",
+            exercise: headers[colExercise] || "Упражнение",
+            reps: colReps !== -1 ? (headers[colReps] || "Повторы") : "Встроено в схему",
+            rest: colRest !== -1 ? (headers[colRest] || "Отдых") : "90 сек",
+            rpe: allowedRpeValues.join(", ")
+          },
+          warnings,
+          completedCount,
+          totalExercisesParsed,
+          firstUnfilledName: firstUnfilledPoint.name
+        }
+      };
+    }
+
+    // =========================================================================
+    // 4. EXCEL (.XLSX) EXPORT ENGINE (Browser & Android WebView Compatible)
+    // =========================================================================
+    function exportClientToExcel(client) {
+      if (!client) {
+        showUndoToast("Нет активного клиента для экспорта");
+        return;
+      }
+
+      const headerRow = [
+        "День недели / Тренировка",
+        "Упражнение",
+        "Повторы",
+        "Отдых"
+      ];
+      for (let w = 1; w <= client.totalWeeks; w++) {
+        headerRow.push(`Неделя ${w} (План)`);
+        headerRow.push(`Вес (Нед. ${w}), кг`);
+        headerRow.push(`RPE (Нед. ${w})`);
+        headerRow.push(`Статус (Нед. ${w})`);
+      }
+
+      const sheetRows = [
+        [`Тренировочный дневник — ${client.name} (${client.subtitle || ""})`],
+        [],
+        headerRow
+      ];
+
+      const dayKeys = Object.keys(client.days).map(Number).sort((a, b) => a - b);
+      dayKeys.forEach(dNum => {
+        const dayObj = client.days[dNum];
+        dayObj.exercises.forEach((ex, idx) => {
+          const w1 = ex.weeks[1] || {};
+          const row = [
+            idx === 0 ? (dayObj.shortTitle || dayObj.title) : (dayObj.shortTitle || `День ${dNum}`),
+            ex.code ? `${ex.code}: ${ex.name}` : ex.name,
+            w1.actualReps || w1.planReps || "",
+            ex.rest || ""
+          ];
+
+          for (let w = 1; w <= client.totalWeeks; w++) {
+            const wData = ex.weeks[w] || w1;
+            const baseScheme = `${wData.actualSets || wData.planSets}×${wData.actualReps || wData.planReps}`;
+            row.push(wData.intensification ? `${baseScheme} + ${wData.intensification}` : baseScheme);
+            row.push(wData.weight !== "" ? wData.weight : "");
+            row.push(wData.actualRpe || wData.planRpe || "");
+            row.push(
+              wData.status === "completed"
+                ? "Выполнено ✓"
+                : wData.status === "skipped"
+                ? "Пропущено"
+                : ""
+            );
+          }
+          sheetRows.push(row);
+        });
+      });
+
+      const safeFileName = `FitTrainer_${client.name.replace(/[^\wа-яА-ЯёЁ\- ]/g, "_").trim() || "Export"}.xlsx`;
+
+      if (typeof XLSX !== "undefined") {
+        const wb = XLSX.utils.book_new();
+        const ws = XLSX.utils.aoa_to_sheet(sheetRows);
+        XLSX.utils.book_append_sheet(wb, ws, "Тренировки");
+
+        // Support Android WebView native download if AndroidBridge is present
+        if (window.AndroidBridge && typeof window.AndroidBridge.downloadBase64Xlsx === "function") {
+          const b64 = XLSX.write(wb, { bookType: "xlsx", type: "base64" });
+          window.AndroidBridge.downloadBase64Xlsx(b64, safeFileName);
+          showUndoToast(`Файл ${safeFileName} сохранён в Загрузки`);
+          return;
+        }
+
+        XLSX.writeFile(wb, safeFileName);
+        showUndoToast(`Экспортирован файл: ${safeFileName}`);
+      } else {
+        // Fallback CSV export if offline without SheetJS CDN
+        const csvContent = "\uFEFF" + sheetRows.map(r => r.map(c => `"${String(c ?? "").replace(/"/g, '""')}"`).join(";")).join("\n");
+        const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+        const link = document.createElement("a");
+        link.href = URL.createObjectURL(blob);
+        link.download = safeFileName.replace(/\.xlsx$/, ".csv");
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        showUndoToast("Экспортирован CSV-файл для Excel");
+      }
+    }
+
+    // =========================================================================
+    // 5. APPLICATION STATE & STORAGE
+    // =========================================================================
+    const STORAGE_KEY = "fittrainer_liquid_glass_clean_v5";
+    let appState = {
+      theme: "day",
+      activeTab: "workouts",
+      activeClientId: "",
+      clients: [],
+      focusGroupIndexByClient: {},
+      undoStack: []
+    };
+
+    function loadState() {
+      try {
+        const raw = localStorage.getItem(STORAGE_KEY);
+        if (raw) {
+          const parsed = JSON.parse(raw);
+          if (parsed && Array.isArray(parsed.clients)) {
+            appState = Object.assign(appState, parsed);
+          }
+        }
+      } catch (e) {}
+      applyTheme(appState.theme || "day");
+    }
+
+    function saveState() {
+      try {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(appState));
+      } catch (e) {}
+      if (window.AndroidBridge && typeof window.AndroidBridge.saveBackup === "function") {
+        try { window.AndroidBridge.saveBackup(JSON.stringify(appState)); } catch (e) {}
+      }
+    }
+
+    function applyTheme(theme) {
+      appState.theme = theme === "night" ? "night" : "day";
+      document.documentElement.setAttribute("data-theme", appState.theme);
+      const icon = document.getElementById("themeIcon");
+      if (icon) icon.textContent = appState.theme === "night" ? "☀️" : "🌙";
+      saveState();
+    }
+
+    function pushUndo(description) {
+      const snapshot = JSON.stringify({
+        clients: appState.clients,
+        activeClientId: appState.activeClientId,
+        focusGroupIndexByClient: appState.focusGroupIndexByClient
+      });
+      appState.undoStack.push({ description, snapshot });
+      if (appState.undoStack.length > 15) appState.undoStack.shift();
+      showUndoToast(description);
+    }
+
+    let undoTimeout = null;
+    function showUndoToast(text) {
+      const toast = document.getElementById("undoToast");
+      const msg = document.getElementById("undoToastMessage");
+      msg.textContent = text;
+      toast.classList.remove("hidden");
+      if (undoTimeout) clearTimeout(undoTimeout);
+      undoTimeout = setTimeout(() => toast.classList.add("hidden"), 5000);
+    }
+
+    function performUndo() {
+      if (!appState.undoStack.length) return;
+      const last = appState.undoStack.pop();
+      const restored = JSON.parse(last.snapshot);
+      appState.clients = restored.clients;
+      appState.activeClientId = restored.activeClientId;
+      appState.focusGroupIndexByClient = restored.focusGroupIndexByClient || {};
+      document.getElementById("undoToast").classList.add("hidden");
+      saveState();
+      renderAll();
+    }
+
+    function getActiveClient() {
+      if (!appState.clients.length) return null;
+      return appState.clients.find(c => c.id === appState.activeClientId) || appState.clients[0];
+    }
+
+    function getExecutionUnits(client, weekNum, dayNum) {
+      if (!client) return [];
+      const dayObj = client.days[dayNum] || Object.values(client.days)[0];
+      if (!dayObj) return [];
+      const exercises = dayObj.exercises;
+      const units = [];
+      let i = 0;
+      while (i < exercises.length) {
+        const ex = exercises[i];
+        const exWeek = ex.weeks[weekNum] || ex.weeks[1];
+        if (ex.group && i + 1 < exercises.length && exercises[i + 1].group === ex.group) {
+          const items = [ex];
+          let j = i + 1;
+          while (j < exercises.length && exercises[j].group === ex.group) {
+            items.push(exercises[j]);
+            j++;
+          }
+          const allDone = items.every(item => {
+            const st = (item.weeks[weekNum] || item.weeks[1]).status;
+            return st === "completed" || st === "skipped";
+          });
+          units.push({ type: "superset", groupCode: ex.group, items, isDone: allDone });
+          i = j;
+        } else {
+          const st = exWeek.status;
+          units.push({ type: "single", groupCode: ex.code || "", items: [ex], isDone: st === "completed" || st === "skipped" });
+          i++;
+        }
+      }
+      return units;
+    }
+
+    function getClientLiveSummary(client) {
+      const w = client.activeWeek;
+      const d = client.activeDay;
+      const dayObj = client.days[d] || Object.values(client.days)[0];
+      const units = getExecutionUnits(client, w, d);
+      const totalEx = dayObj.exercises.length;
+      const doneEx = dayObj.exercises.filter(e => (e.weeks[w] || e.weeks[1]).status === "completed").length;
+      const activeUnit = units.find(u => !u.isDone);
+      const dayShort = dayObj.shortTitle || `Д${d}`;
+
+      if (!activeUnit) {
+        return {
+          statusText: "Завершено",
+          exerciseTitle: "Все упражнения дня выполнены",
+          footerMeta: `${doneEx}/${totalEx} упр. • Нед ${w}/${client.totalWeeks} • ${dayShort}`
+        };
+      }
+      const firstEx = activeUnit.items[0];
+      return {
+        statusText: "В работе",
+        exerciseTitle: activeUnit.type === "superset"
+          ? `${activeUnit.items.map(i => i.code).join("+")}: ${firstEx.name}`
+          : firstEx.name,
+        footerMeta: `${doneEx}/${totalEx} упр. • Нед ${w}/${client.totalWeeks} • ${dayShort}`
+      };
+    }
+
+    // =========================================================================
+    // 6. UI RENDERING
+    // =========================================================================
+    function renderCarousel() {
+      const container = document.getElementById("clientCarousel");
+      document.getElementById("clientCountBadge").textContent = String(appState.clients.length);
+
+      if (appState.clients.length === 0) {
+        container.innerHTML = `
+          <div class="w-full py-2 px-3 rounded-2xl glass-subbox text-xs text-sub flex items-center justify-between">
+            <span>Список клиентов пуст</span>
+            <button type="button" data-action="open-import-modal" class="font-extrabold accent-text">＋ Загрузить таблицу</button>
+          </div>
+        `;
+        return;
+      }
+
+      const sorted = [...appState.clients].sort((a, b) => (b.pinned ? 1 : 0) - (a.pinned ? 1 : 0));
+
+      container.innerHTML = sorted.map(client => {
+        const isActive = client.id === appState.activeClientId;
+        const live = getClientLiveSummary(client);
+        return `
+          <div
+            class="snap-start-card shrink-0 w-[245px] sm:w-[265px] rounded-3xl p-3.5 transition-all flex flex-col justify-between relative ${
+              isActive ? "glass-active-card" : "glass-secondary-card opacity-90 hover:opacity-100"
+            }"
+          >
+            <div class="flex items-center justify-between gap-1.5 mb-1.5">
+              <button type="button" data-action="select-client" data-client-id="${client.id}" class="flex items-center gap-1 truncate text-left flex-1">
+                <span class="font-extrabold text-[15px] text-main truncate">${client.name}</span>
+                ${client.pinned ? '<span class="text-xs" title="Закреплён">📌</span>' : ""}
+              </button>
+              <div class="flex items-center gap-1 shrink-0">
+                ${
+                  isActive
+                    ? `<span class="px-2 py-0.5 rounded-full text-[10px] font-bold accent-pill flex items-center gap-1">
+                         <span class="w-1.5 h-1.5 rounded-full" style="background: var(--accent-main);"></span>${live.statusText}
+                       </span>`
+                    : ""
+                }
+                <button
+                  type="button"
+                  data-action="delete-client"
+                  data-client-id="${client.id}"
+                  class="w-6 h-6 rounded-full glass-subbox flex items-center justify-center text-[11px] font-bold text-muted-custom hover:text-rose-500 transition"
+                  title="Удалить карточку клиента"
+                >
+                  ✕
+                </button>
+              </div>
+            </div>
+
+            <button type="button" data-action="select-client" data-client-id="${client.id}" class="text-left w-full">
+              <div class="text-[13px] font-bold text-main leading-snug line-clamp-2 min-h-[34px] mb-2">
+                ${live.exerciseTitle}
+              </div>
+
+              <div class="flex items-center justify-between text-[11px] text-muted-custom">
+                <span class="truncate">${live.footerMeta}</span>
+                ${
+                  isActive
+                    ? `<span class="font-bold accent-text flex items-center gap-1 shrink-0">Активен ●</span>`
+                    : ""
+                }
+              </div>
+            </button>
+          </div>
+        `;
+      }).join("");
+    }
+
+    function renderProgramNavigator(client) {
+      const w = client.activeWeek;
+      const d = client.activeDay;
+      const dayObj = client.days[d] || Object.values(client.days)[0];
+      const dayLabel = dayObj ? (dayObj.shortTitle || `День ${d}`) : `День ${d}`;
+
+      document.getElementById("clientSourceBadge").textContent = client.subtitle || "Импортировано из таблицы";
+      document.getElementById("programProgressText").textContent = `Неделя ${w} из ${client.totalWeeks} • ${dayLabel}`;
+
+      // Week Pills
+      const weekHtml = [];
+      for (let wk = 1; wk <= client.totalWeeks; wk++) {
+        let total = 0;
+        let done = 0;
+        Object.values(client.days).forEach(dItem => {
+          dItem.exercises.forEach(ex => {
+            total++;
+            const wObj = ex.weeks[wk] || ex.weeks[1];
+            if (wObj && wObj.status === "completed") done++;
+          });
+        });
+        const isCurrent = wk === w;
+        weekHtml.push(`
+          <button
+            type="button"
+            data-action="select-week"
+            data-week="${wk}"
+            class="py-1.5 px-3 rounded-2xl text-center shrink-0 transition flex flex-col items-center justify-center ${
+              isCurrent ? "accent-btn font-extrabold shadow-sm" : "glass-subbox text-main font-semibold hover:opacity-90"
+            }"
+          >
+            <span class="text-xs">Нед ${wk}</span>
+            ${done > 0 ? `<span class="text-[9px] text-muted-custom leading-none mt-0.5">(${done}/${total})</span>` : ""}
+          </button>
+        `);
+      }
+      document.getElementById("weekSelector").innerHTML = weekHtml.join("");
+
+      // Day Cards (Supports any number of days from table: e.g. Понедельник, Среда, Четверг, Пятница, Суббота)
+      const dayKeys = Object.keys(client.days).map(Number).sort((a, b) => a - b);
+      const dayHtml = dayKeys.map(dayNum => {
+        const dItem = client.days[dayNum];
+        const isSkippedDay = dItem.skippedWeeks && dItem.skippedWeeks[w];
+        const exList = dItem.exercises;
+        const doneCount = exList.filter(e => (e.weeks[w] || e.weeks[1]).status === "completed").length;
+        const isSelected = dayNum === d;
+        const shortName = dItem.shortTitle || `День ${dayNum}`;
+        return `
+          <button
+            type="button"
+            data-action="select-day"
+            data-day="${dayNum}"
+            class="p-2.5 rounded-2xl text-left transition ${
+              isSelected ? "glass-active-card" : "glass-subbox hover:opacity-95"
+            }"
+          >
+            <div class="flex items-center justify-between text-xs font-extrabold text-main gap-1">
+              <span class="truncate">${shortName}</span>
+              <span class="text-[11px] font-semibold text-muted-custom shrink-0">
+                ${isSkippedDay ? "⚠️" : `${doneCount}/${exList.length}`}
+              </span>
+            </div>
+            <div class="text-[10px] truncate mt-0.5 text-sub">День ${dayNum}</div>
+          </button>
+        `;
+      });
+      document.getElementById("daySelector").innerHTML = dayHtml.join("");
+
+      const isCurrentSkipped = dayObj && dayObj.skippedWeeks && dayObj.skippedWeeks[w];
+      document.getElementById("skippedDayBanner").classList.toggle("hidden", !isCurrentSkipped);
+    }
+
+    function renderExerciseItemControls(client, ex, weekNum, isSupersetMember) {
+      const wData = ex.weeks[weekNum] || ex.weeks[1];
+      const isBw = wData.weight === "Свой вес";
+      // STRICT WEIGHT RULE: Only show weight if present in table or entered by trainer! Never show default "50"!
+      const displayWeight = wData.weight !== "" ? wData.weight : "";
+
+      // Show previous week weight hint ONLY if a previous week actually had a recorded weight
+      let prevHint = "";
+      for (let pw = weekNum - 1; pw >= 1; pw--) {
+        if (ex.weeks[pw] && ex.weeks[pw].weight !== "") {
+          const pwVal = ex.weeks[pw].weight;
+          prevHint = `Нед ${pw}: ${pwVal}${String(pwVal).includes("кг") || String(pwVal).includes("Свой") ? "" : " кг"}`;
+          break;
+        }
+      }
+
+      const rpeList = (Array.isArray(client.allowedRpeValues) && client.allowedRpeValues.length > 0)
+        ? client.allowedRpeValues
+        : [6, 7, 8, 9, 10];
+      const activeRpe = wData.actualRpe || wData.planRpe || 8;
+
+      return `
+        <div class="${isSupersetMember ? 'pt-3 first:pt-0 border-t first:border-0' : ''}" style="border-color: var(--glass-stroke);">
+          <div class="flex items-center justify-between gap-2 mb-1.5">
+            <div class="flex items-center gap-1.5 flex-wrap">
+              ${ex.code ? `<span class="px-2 py-0.5 rounded-lg text-xs font-extrabold accent-pill">${ex.code}</span>` : ""}
+              <span class="px-2.5 py-0.5 rounded-xl glass-subbox text-xs font-bold text-main">${ex.zone || ex.muscle}</span>
+              ${prevHint ? `<span class="px-2.5 py-0.5 rounded-xl accent-pill text-xs font-bold">${prevHint}</span>` : ""}
+            </div>
+            <button
+              type="button"
+              data-action="skip-exercise"
+              data-ex-id="${ex.id}"
+              class="px-3 py-1.5 rounded-2xl glass-subbox text-xs font-bold text-main flex items-center gap-1 active:scale-95 transition"
+            >
+              <span>⏭</span>
+              <span>Пропуск</span>
+            </button>
+          </div>
+
+          <h3 class="text-base sm:text-[17px] font-extrabold text-main leading-snug ${wData.intensification ? 'mb-2' : 'mb-3'}">
+            ${ex.name}
+          </h3>
+
+          ${
+            wData.intensification
+              ? `<div class="mb-3 px-3.5 py-2.5 rounded-2xl intensifier-pill flex flex-wrap items-center justify-between gap-x-2 gap-y-0.5">
+                   <div class="text-xs sm:text-[13px] font-extrabold leading-snug">
+                     <span>⚡ Интенсификация: </span>
+                     <span class="underline decoration-amber-500/50 underline-offset-2">${wData.intensification}</span>
+                   </div>
+                   <span class="text-[10px] font-bold opacity-80 shrink-0">Финальный сет</span>
+                 </div>`
+              : ""
+          }
+
+          <!-- 3-COLUMN GLASS CONTROL BOX -->
+          <div class="glass-subbox rounded-2xl p-2.5 grid grid-cols-12 gap-2 items-center">
+            <!-- Col 1: ПЛАН: 3×6–8 RPE 7 -->
+            <div class="col-span-5 pr-1 border-r" style="border-color: var(--glass-stroke);">
+              <div class="flex items-center gap-1 flex-wrap mb-1.5">
+                <span class="text-[10px] font-bold uppercase text-muted-custom">ПЛАН: ${wData.planSets}×${wData.planReps}</span>
+                <span class="px-1.5 py-0.2 rounded-md accent-pill text-[10px] font-extrabold">RPE ${wData.planRpe}</span>
+              </div>
+              <div class="flex items-center justify-between gap-1">
+                <button type="button" data-action="step-sets" data-ex-id="${ex.id}" data-delta="-1" class="w-7 h-7 rounded-full glass-panel font-extrabold text-sm text-main flex items-center justify-center active:scale-90">−</button>
+                <div class="text-center">
+                  <div class="text-xs font-extrabold text-main">${wData.actualSets} × ${wData.actualReps}</div>
+                  <div class="text-[9px] text-muted-custom leading-none">Подход × повтор</div>
+                </div>
+                <button type="button" data-action="step-sets" data-ex-id="${ex.id}" data-delta="1" class="w-7 h-7 rounded-full glass-panel font-extrabold text-sm text-main flex items-center justify-center active:scale-90">+</button>
+              </div>
+            </div>
+
+            <!-- Col 2: РАБОЧИЙ ВЕС (КГ) — Empty placeholder "—" if not in table -->
+            <div class="col-span-4 px-1 border-r" style="border-color: var(--glass-stroke);">
+              <div class="text-[10px] font-bold uppercase text-muted-custom text-center mb-1.5">РАБОЧИЙ ВЕС (КГ)</div>
+              <div class="flex items-center justify-between gap-1">
+                <button type="button" data-action="step-weight" data-ex-id="${ex.id}" data-delta="-2.5" class="w-7 h-7 rounded-full glass-panel font-extrabold text-sm text-main flex items-center justify-center active:scale-90">−</button>
+                <input
+                  type="text"
+                  data-action="input-weight"
+                  data-ex-id="${ex.id}"
+                  value="${displayWeight}"
+                  placeholder="—"
+                  class="w-12 text-center bg-transparent font-extrabold text-sm text-main placeholder-slate-400 focus:outline-none"
+                />
+                <button type="button" data-action="step-weight" data-ex-id="${ex.id}" data-delta="2.5" class="w-7 h-7 rounded-full glass-panel font-extrabold text-sm text-main flex items-center justify-center active:scale-90">+</button>
+              </div>
+            </div>
+
+            <!-- Col 3: СВОЙ ВЕС (BW) / Quick Step -->
+            <div class="col-span-3 pl-1 flex flex-col items-center justify-center">
+              <button
+                type="button"
+                data-action="toggle-bw"
+                data-ex-id="${ex.id}"
+                class="text-[10px] font-bold uppercase text-muted-custom hover:underline mb-1.5 text-center leading-tight"
+              >
+                ${isBw ? "ОЧИСТИТЬ" : "СВОЙ ВЕС (BW)"}
+              </button>
+              <button
+                type="button"
+                data-action="step-weight"
+                data-ex-id="${ex.id}"
+                data-delta="2.5"
+                class="w-full py-1.5 rounded-xl glass-panel font-extrabold text-xs text-main active:scale-95 transition"
+              >
+                +2.5
+              </button>
+            </div>
+          </div>
+
+          <!-- STRICT TABLE RPE SELECTOR -->
+          <div class="mt-2.5 flex items-center justify-between gap-2">
+            <span class="text-[11px] font-semibold text-sub shrink-0">RPE (из таблицы):</span>
+            <div class="flex items-center gap-1 flex-1 justify-end">
+              ${rpeList.map(val => `
+                <button
+                  type="button"
+                  data-action="select-rpe"
+                  data-ex-id="${ex.id}"
+                  data-rpe="${val}"
+                  class="px-2.5 py-1 rounded-xl text-xs font-extrabold transition ${
+                    Number(activeRpe) === Number(val)
+                      ? "accent-solid-btn"
+                      : "glass-subbox text-main hover:opacity-90"
+                  }"
+                >
+                  ${val}
+                </button>
+              `).join("")}
+            </div>
+          </div>
+        </div>
+      `;
+    }
+
+    function renderWorkoutWorkspace(client) {
+      const emptyEl = document.getElementById("emptyClientsState");
+      const wrapperEl = document.getElementById("activeWorkoutWrapper");
+      if (!client) {
+        emptyEl.classList.remove("hidden");
+        wrapperEl.classList.add("hidden");
+        return;
+      }
+      emptyEl.classList.add("hidden");
+      wrapperEl.classList.remove("hidden");
+
+      const w = client.activeWeek;
+      const d = client.activeDay;
+      const dayObj = client.days[d] || Object.values(client.days)[0];
+      const units = getExecutionUnits(client, w, d);
+
+      const key = `${client.id}_w${w}_d${d}`;
+      let activeIdx = appState.focusGroupIndexByClient[key];
+      if (activeIdx === undefined || activeIdx < 0 || activeIdx >= units.length || units[activeIdx].isDone) {
+        activeIdx = units.findIndex(u => !u.isDone);
+      }
+
+      const completedRows = [];
+      const upcomingRows = [];
+      let activeCardHtml = "";
+      let nextPreviewHtml = "";
+
+      units.forEach((unit, idx) => {
+        if (idx === activeIdx) {
+          const primaryEx = unit.items[0];
+          const secondEx = unit.items[1] || primaryEx;
+          const t1 = parseRestTimersFromText(primaryEx.rest, unit.type === "superset");
+          const t2 = parseRestTimersFromText(secondEx.rest, unit.type === "superset");
+
+          const showTransitionButton = t1.hasTransition;
+          const transSec = t1.transitionSec;
+          const mainRestSec = unit.type === "superset" ? t2.restSec : t1.restSec;
+
+          const headerLabel = unit.type === "superset"
+            ? `ТЕКУЩИЙ СУПЕРСЕТ (${unit.items.map(i => i.code).join("+")})`
+            : `ТЕКУЩЕЕ УПРАЖНЕНИЕ (${idx + 1} из ${units.length})`;
+
+          activeCardHtml = `
+            <div class="glass-active-card rounded-3xl p-4">
+              <div class="flex items-center justify-between gap-2 mb-2.5">
+                <span class="text-xs font-extrabold tracking-wide uppercase accent-text">
+                  ${headerLabel}
+                </span>
+                <span class="text-xs font-semibold text-muted-custom">Нед ${w} • ${dayObj.shortTitle || 'День ' + d}</span>
+              </div>
+
+              <div class="flex flex-col gap-3">
+                ${unit.items.map(ex => renderExerciseItemControls(client, ex, w, unit.type === "superset")).join("")}
+              </div>
+
+              <!-- EMBEDDED TABLE-DRIVEN REST TIMER (No transition button unless explicitly needed!) -->
+              <div class="mt-3 pt-3 border-t flex items-center justify-between gap-2" style="border-color: var(--glass-stroke);">
+                <div class="min-w-0">
+                  <div class="text-[11px] text-muted-custom truncate">
+                    Отдых по таблице: <b class="text-main">${primaryEx.rest}</b>
+                  </div>
+                  <div id="restTimerDisplay" class="text-xs sm:text-sm font-extrabold text-main">
+                    ${currentTimerText}
+                  </div>
+                </div>
+                <div class="flex items-center gap-1.5 shrink-0">
+                  ${
+                    showTransitionButton
+                      ? `<button
+                           type="button"
+                           data-action="start-table-timer"
+                           data-seconds="${transSec}"
+                           data-label="Переход"
+                           class="px-3 py-1.5 rounded-2xl glass-subbox text-center leading-tight active:scale-95 transition"
+                         >
+                           <div class="text-xs font-extrabold text-main">${transSec}с</div>
+                           <div class="text-[10px] text-muted-custom">переход</div>
+                         </button>`
+                      : ""
+                  }
+                  <button
+                    type="button"
+                    data-action="start-table-timer"
+                    data-seconds="${mainRestSec}"
+                    data-label="Отдых"
+                    class="px-3.5 py-1.5 rounded-2xl glass-subbox text-center leading-tight active:scale-95 transition"
+                  >
+                    <div class="text-xs font-extrabold text-main">${primaryEx.rest || (mainRestSec + 'с')}</div>
+                    <div class="text-[10px] text-muted-custom">${mainRestSec} сек</div>
+                  </button>
+                  <button
+                    type="button"
+                    data-action="reset-table-timer"
+                    class="w-8 h-8 rounded-full glass-subbox flex items-center justify-center text-xs font-bold text-sub active:scale-90 transition"
+                    title="Сбросить таймер"
+                  >
+                    ✕
+                  </button>
+                </div>
+              </div>
+
+              <button
+                type="button"
+                data-action="complete-unit"
+                data-unit-idx="${idx}"
+                data-rest-sec="${mainRestSec}"
+                class="mt-3 w-full py-3 rounded-2xl accent-solid-btn font-extrabold text-xs sm:text-sm flex items-center justify-center gap-2 active:scale-98 transition"
+              >
+                <span>✓ Выполнено — сохранить и запустить таймер (${primaryEx.rest || mainRestSec + 'с'})</span>
+              </button>
+            </div>
+          `;
+        } else if (activeIdx !== -1 && idx === activeIdx + 1) {
+          const nextEx = unit.items[0];
+          const wData = nextEx.weeks[w] || nextEx.weeks[1];
+          nextPreviewHtml = `
+            <div
+              data-action="focus-unit"
+              data-unit-idx="${idx}"
+              class="cursor-pointer glass-panel rounded-2xl px-3.5 py-2.5 flex items-center justify-between gap-2 hover:opacity-95 transition"
+            >
+              <div class="truncate">
+                <span class="text-[10px] font-extrabold uppercase accent-text">Далее: </span>
+                <span class="text-xs font-bold text-main">${nextEx.name}</span>
+              </div>
+              <span class="text-xs font-semibold text-sub shrink-0">${wData.planSets}×${wData.planReps} • RPE ${wData.planRpe}${wData.intensification ? ' • ⚡ ' + wData.intensification : ''} →</span>
+            </div>
+          `;
+        } else {
+          unit.items.forEach(ex => {
+            const wData = ex.weeks[w] || ex.weeks[1];
+            const isComp = wData.status === "completed";
+            const isSkip = wData.status === "skipped";
+            const weightBadge = wData.weight ? `${wData.weight}${String(wData.weight).includes("кг") || String(wData.weight).includes("Свой") ? "" : " кг"} • ` : "";
+            const rowItem = `
+              <div
+                data-action="focus-unit"
+                data-unit-idx="${idx}"
+                class="cursor-pointer px-3.5 py-2.5 flex items-center justify-between gap-2 border-b last:border-b-0 hover:opacity-90 transition"
+                style="border-color: var(--glass-stroke);"
+              >
+                <div class="flex items-center gap-2.5 truncate">
+                  <span class="w-5 h-5 rounded-full flex items-center justify-center text-xs font-bold shrink-0 ${
+                    isComp ? "accent-pill" : "glass-subbox text-muted-custom"
+                  }">
+                    ${isComp ? "✓" : isSkip ? "⏭" : "○"}
+                  </span>
+                  <span class="text-xs font-semibold text-main truncate">${ex.name}</span>
+                </div>
+                <div class="text-xs font-semibold text-sub shrink-0 flex items-center gap-1.5">
+                  ${wData.intensification ? `<span class="px-1.5 py-0.5 rounded-lg intensifier-pill text-[10px] font-extrabold truncate max-w-[135px]" title="${wData.intensification}">⚡ ${wData.intensification}</span>` : ""}
+                  <span><span class="font-bold text-main">${weightBadge}</span>${wData.actualSets}×${wData.actualReps} • RPE ${wData.actualRpe || wData.planRpe}</span>
+                </div>
+              </div>
+            `;
+            if (unit.isDone || (activeIdx !== -1 && idx < activeIdx)) {
+              completedRows.push(rowItem);
+            } else {
+              upcomingRows.push(rowItem);
+            }
+          });
+        }
+      });
+
+      if (activeIdx === -1) {
+        activeCardHtml = `
+          <div class="glass-active-card rounded-3xl p-5 text-center">
+            <div class="text-2xl mb-1">✓</div>
+            <h3 class="text-base font-extrabold text-main">Тренировка (${dayObj.shortTitle || 'День ' + d}) выполнена!</h3>
+            <p class="text-xs text-sub mt-1">Нажмите на любое упражнение выше для редактирования или выгрузите результат в Excel.</p>
+            <div class="flex items-center justify-center gap-2 mt-3">
+              <button type="button" data-action="export-active-client" class="px-4 py-2.5 rounded-2xl glass-subbox font-extrabold text-xs text-main">
+                📥 Экспорт в Excel (.xlsx)
+              </button>
+              <button type="button" data-action="advance-next-workout" class="px-4 py-2.5 rounded-2xl accent-solid-btn font-extrabold text-xs">
+                Следующий день →
+              </button>
+            </div>
+          </div>
+        `;
+      }
+
+      document.getElementById("completedExercisesSection").innerHTML = completedRows.length
+        ? `<div class="text-xs font-semibold text-sub px-1">Выполнено / пройдено (тап для редактирования)</div>
+           <div class="glass-panel rounded-3xl overflow-hidden">${completedRows.join("")}</div>`
+        : "";
+
+      document.getElementById("activeFocusZone").innerHTML = activeCardHtml;
+      document.getElementById("nextPreviewZone").innerHTML = nextPreviewHtml;
+      document.getElementById("upcomingExercisesSection").innerHTML = upcomingRows.length
+        ? `<div class="text-xs font-semibold text-sub px-1 mt-1">Очередь упражнений этого дня (${upcomingRows.length})</div>
+           <div class="glass-panel rounded-3xl overflow-hidden">${upcomingRows.join("")}</div>`
+        : "";
+    }
+
+    function renderSecondaryTabs() {
+      const activeClient = getActiveClient();
+
+      // Tab 2: Loaded tables list with Export & Delete buttons
+      const tablesListEl = document.getElementById("tablesLoadedList");
+      if (tablesListEl) {
+        if (!appState.clients.length) {
+          tablesListEl.innerHTML = `<div class="text-xs text-muted-custom py-2">Нет загруженных таблиц.</div>`;
+        } else {
+          tablesListEl.innerHTML = appState.clients.map(c => {
+            const daysNames = Object.values(c.days).map(d => d.shortTitle).join(", ");
+            let exCount = 0;
+            Object.values(c.days).forEach(d => { exCount += d.exercises.length; });
+            return `
+              <div class="p-3 rounded-2xl glass-subbox flex items-center justify-between gap-2 flex-wrap">
+                <div class="min-w-0 flex-1">
+                  <div class="font-extrabold text-xs text-main truncate">${c.name}</div>
+                  <div class="text-[11px] text-sub truncate">Дни: ${daysNames} (${exCount} упр.)</div>
+                </div>
+                <div class="flex items-center gap-1.5 shrink-0">
+                  <button type="button" data-action="export-client-by-id" data-client-id="${c.id}" class="px-2.5 py-1.5 rounded-xl glass-panel text-xs font-bold text-main">
+                    📥 .xlsx
+                  </button>
+                  <button type="button" data-action="switch-to-client-workout" data-client-id="${c.id}" class="px-2.5 py-1.5 rounded-xl accent-btn text-xs font-bold">
+                    Открыть
+                  </button>
+                  <button type="button" data-action="delete-client" data-client-id="${c.id}" class="px-2.5 py-1.5 rounded-xl glass-panel text-xs font-bold text-rose-500">
+                    🗑
+                  </button>
+                </div>
+              </div>
+            `;
+          }).join("");
+        }
+      }
+
+      // Tab 3: Clients list (Allows deleting any or ALL clients!)
+      const q = (document.getElementById("inputTabSearchClient")?.value || "").toLowerCase().trim();
+      const filteredClients = appState.clients.filter(c => c.name.toLowerCase().includes(q));
+      const clientsContainer = document.getElementById("tabClientsListContainer");
+      if (clientsContainer) {
+        if (!filteredClients.length) {
+          clientsContainer.innerHTML = `<div class="text-xs text-muted-custom py-3 text-center">Список клиентов пуст. Нажмите «＋ Импорт», чтобы добавить программу из таблицы.</div>`;
+        } else {
+          clientsContainer.innerHTML = filteredClients.map(c => {
+            const live = getClientLiveSummary(c);
+            return `
+              <div class="p-3 rounded-2xl glass-subbox flex items-center justify-between gap-2">
+                <button type="button" data-action="switch-to-client-workout" data-client-id="${c.id}" class="text-left flex-1 min-w-0">
+                  <div class="font-extrabold text-sm text-main truncate">${c.name} ${c.pinned ? "📌" : ""}</div>
+                  <div class="text-xs text-sub truncate">${live.exerciseTitle}</div>
+                  <div class="text-[11px] text-muted-custom">${live.footerMeta}</div>
+                </button>
+                <div class="flex items-center gap-1.5 shrink-0">
+                  <button type="button" data-action="export-client-by-id" data-client-id="${c.id}" class="px-2.5 py-1.5 rounded-xl glass-panel text-xs font-bold text-main" title="Экспорт в Excel">
+                    📥
+                  </button>
+                  <button type="button" data-action="toggle-pin-client" data-client-id="${c.id}" class="px-2.5 py-1.5 rounded-xl glass-panel text-xs font-bold text-main" title="Закрепить">
+                    📌
+                  </button>
+                  <button type="button" data-action="delete-client" data-client-id="${c.id}" class="px-2.5 py-1.5 rounded-xl glass-panel text-xs font-bold text-rose-500" title="Удалить карточку клиента">
+                    🗑
+                  </button>
+                </div>
+              </div>
+            `;
+          }).join("");
+        }
+      }
+
+      // Tab 4: Analytics
+      const analyticsTitle = document.getElementById("analyticsClientTitle");
+      if (analyticsTitle) {
+        if (!activeClient) {
+          analyticsTitle.textContent = "Аналитика (нет активного клиента)";
+          document.getElementById("analyticsMetricsGrid").innerHTML = "";
+          document.getElementById("analyticsDaysBreakdown").innerHTML = "";
+        } else {
+          analyticsTitle.textContent = `Аналитика: ${activeClient.name} (Неделя ${activeClient.activeWeek})`;
+          let totalSetsDone = 0;
+          let totalExCount = 0;
+          let doneExCount = 0;
+          let tonnageKg = 0;
+
+          const dayBreakdownHtml = [];
+          Object.entries(activeClient.days).forEach(([dNum, dObj]) => {
+            let dDone = 0;
+            dObj.exercises.forEach(ex => {
+              totalExCount++;
+              const wObj = ex.weeks[activeClient.activeWeek] || ex.weeks[1];
+              if (wObj.status === "completed") {
+                doneExCount++;
+                dDone++;
+                totalSetsDone += Number(wObj.actualSets || 3);
+                const wNum = parseFloat(String(wObj.weight).replace(",", "."));
+                if (!isNaN(wNum)) {
+                  tonnageKg += wNum * Number(wObj.actualSets || 3) * 8;
+                }
+              }
+            });
+            dayBreakdownHtml.push(`
+              <div class="p-3 rounded-2xl glass-subbox flex items-center justify-between">
+                <span class="text-xs font-bold text-main">${dObj.shortTitle || 'День ' + dNum}</span>
+                <span class="text-xs font-extrabold accent-text">${dDone} / ${dObj.exercises.length} упр.</span>
+              </div>
+            `);
+          });
+
+          document.getElementById("analyticsMetricsGrid").innerHTML = `
+            <div class="p-3 rounded-2xl glass-subbox">
+              <div class="text-[10px] font-bold uppercase text-muted-custom">Упражнений</div>
+              <div class="text-base font-extrabold text-main mt-0.5">${doneExCount}/${totalExCount}</div>
+            </div>
+            <div class="p-3 rounded-2xl glass-subbox">
+              <div class="text-[10px] font-bold uppercase text-muted-custom">Подходов</div>
+              <div class="text-base font-extrabold text-main mt-0.5">${totalSetsDone}</div>
+            </div>
+            <div class="p-3 rounded-2xl glass-subbox">
+              <div class="text-[10px] font-bold uppercase text-muted-custom">Тоннаж</div>
+              <div class="text-base font-extrabold text-main mt-0.5">${Math.round(tonnageKg)} кг</div>
+            </div>
+            <div class="p-3 rounded-2xl glass-subbox">
+              <div class="text-[10px] font-bold uppercase text-muted-custom">RPE таблицы</div>
+              <div class="text-xs font-extrabold text-main mt-1">${(activeClient.allowedRpeValues || [6,7,8,9,10]).join(" • ")}</div>
+            </div>
+          `;
+          document.getElementById("analyticsDaysBreakdown").innerHTML = dayBreakdownHtml.join("");
+        }
+      }
+
+      // Highlight active bottom tab
+      document.querySelectorAll("[data-nav-tab]").forEach(btn => {
+        const t = btn.getAttribute("data-nav-tab");
+        if (t === appState.activeTab) {
+          btn.classList.add("accent-text");
+          btn.classList.remove("text-muted-custom");
+        } else {
+          btn.classList.remove("accent-text");
+          btn.classList.add("text-muted-custom");
+        }
+      });
+
+      const views = {
+        workouts: "tabViewWorkouts",
+        tables: "tabViewTables",
+        clients: "tabViewClients",
+        analytics: "tabViewAnalytics",
+        profile: "tabViewProfile"
+      };
+      Object.entries(views).forEach(([tabName, elId]) => {
+        const el = document.getElementById(elId);
+        if (!el) return;
+        if (tabName === appState.activeTab) {
+          el.classList.remove("hidden");
+          el.classList.add("flex");
+        } else {
+          el.classList.add("hidden");
+          el.classList.remove("flex");
+        }
+      });
+    }
+
+    function renderAll() {
+      const client = getActiveClient();
+      renderCarousel();
+      if (client) {
+        renderProgramNavigator(client);
+      }
+      renderWorkoutWorkspace(client);
+      renderSecondaryTabs();
+    }
+
+    // =========================================================================
+    // 7. REST TIMER ENGINE
+    // =========================================================================
+    let timerInterval = null;
+    let timerSecondsLeft = 0;
+    let currentTimerText = "Готов к подходу • 00:00";
+
+    function startTableTimer(seconds, label) {
+      if (timerInterval) clearInterval(timerInterval);
+      timerSecondsLeft = Math.max(1, Number(seconds) || 60);
+
+      const updateDisplay = () => {
+        const m = String(Math.floor(timerSecondsLeft / 60)).padStart(2, "0");
+        const s = String(timerSecondsLeft % 60).padStart(2, "0");
+        currentTimerText = `${label}: ${m}:${s}`;
+        const el = document.getElementById("restTimerDisplay");
+        if (el) el.textContent = currentTimerText;
+
+        if (timerSecondsLeft <= 0) {
+          clearInterval(timerInterval);
+          timerInterval = null;
+          currentTimerText = "Время вышло! Готов к подходу • 00:00";
+          if (el) el.textContent = currentTimerText;
+        }
+        timerSecondsLeft--;
+      };
+      updateDisplay();
+      timerInterval = setInterval(updateDisplay, 1000);
+    }
+
+    function resetTableTimer() {
+      if (timerInterval) clearInterval(timerInterval);
+      timerInterval = null;
+      currentTimerText = "Готов к подходу • 00:00";
+      const el = document.getElementById("restTimerDisplay");
+      if (el) el.textContent = currentTimerText;
+    }
+
+    // =========================================================================
+    // 8. INTERACTION HANDLERS
+    // =========================================================================
+    function findExerciseById(client, exId) {
+      if (!client) return null;
+      const dayObj = client.days[client.activeDay] || Object.values(client.days)[0];
+      return dayObj ? dayObj.exercises.find(e => e.id === exId) : null;
+    }
+
+    function adjustWeightVal(currentStr, delta) {
+      const raw = String(currentStr || "").trim().replace(",", ".");
+      if (!raw || raw === "Свой вес") return delta > 0 ? String(delta) : "0";
+      const pairMatch = raw.match(/^(\d+(?:\.\d+)?)\+(\d+(?:\.\d+)?)$/);
+      if (pairMatch) {
+        const nextSingle = Math.max(0, parseFloat(pairMatch[1]) + (delta > 0 ? 1 : -1));
+        return `${nextSingle}+${nextSingle}`;
+      }
+      const num = parseFloat(raw.replace(/[^\d.]/g, ""));
+      if (isNaN(num)) return delta > 0 ? String(delta) : "0";
+      return String(Math.max(0, Math.round((num + delta) * 10) / 10));
+    }
+
+    function deleteAllClientsNow() {
+      if (!appState.clients.length) {
+        showUndoToast("Список клиентов уже пуст");
+        return;
+      }
+      pushUndo("Все карточки клиентов удалены");
+      appState.clients = [];
+      appState.activeClientId = "";
+      appState.focusGroupIndexByClient = {};
+      saveState();
+      renderAll();
+    }
+
+    document.addEventListener("click", (e) => {
+      const navBtn = e.target.closest("[data-nav-tab]");
+      if (navBtn) {
+        appState.activeTab = navBtn.getAttribute("data-nav-tab");
+        saveState();
+        renderAll();
+        return;
+      }
+
+      const btn = e.target.closest("[data-action]");
+      if (!btn) return;
+      const action = btn.getAttribute("data-action");
+      const client = getActiveClient();
+
+      if (action === "open-import-modal") {
+        document.getElementById("modalImport").classList.remove("hidden");
+        return;
+      } else if (action === "export-active-client") {
+        exportClientToExcel(client);
+        return;
+      } else if (action === "export-client-by-id") {
+        const cId = btn.getAttribute("data-client-id");
+        const target = appState.clients.find(c => c.id === cId);
+        if (target) exportClientToExcel(target);
+        return;
+      } else if (action === "delete-client") {
+        const cId = btn.getAttribute("data-client-id");
+        const target = appState.clients.find(c => c.id === cId);
+        if (target) {
+          pushUndo(`Удалён клиент: ${target.name}`);
+          appState.clients = appState.clients.filter(c => c.id !== cId);
+          if (appState.activeClientId === cId) {
+            appState.activeClientId = appState.clients[0] ? appState.clients[0].id : "";
+          }
+          saveState();
+          renderAll();
+        }
+        return;
+      }
+
+      if (!client) return;
+      const w = client.activeWeek;
+      const d = client.activeDay;
+
+      if (action === "select-client" || action === "switch-to-client-workout") {
+        appState.activeClientId = btn.getAttribute("data-client-id");
+        appState.activeTab = "workouts";
+        saveState();
+        renderAll();
+      } else if (action === "select-week") {
+        client.activeWeek = Number(btn.getAttribute("data-week"));
+        saveState();
+        renderAll();
+      } else if (action === "select-day") {
+        client.activeDay = Number(btn.getAttribute("data-day"));
+        saveState();
+        renderAll();
+      } else if (action === "focus-unit") {
+        const unitIdx = Number(btn.getAttribute("data-unit-idx"));
+        const units = getExecutionUnits(client, w, d);
+        const target = units[unitIdx];
+        if (target) {
+          target.items.forEach(ex => {
+            const wObj = ex.weeks[w] || ex.weeks[1];
+            if (wObj.status !== "pending") wObj.status = "pending";
+          });
+          appState.focusGroupIndexByClient[`${client.id}_w${w}_d${d}`] = unitIdx;
+          saveState();
+          renderAll();
+        }
+      } else if (action === "step-weight") {
+        const ex = findExerciseById(client, btn.getAttribute("data-ex-id"));
+        const delta = parseFloat(btn.getAttribute("data-delta"));
+        if (ex) {
+          const wObj = ex.weeks[w] || ex.weeks[1];
+          wObj.weight = adjustWeightVal(wObj.weight, delta);
+          saveState();
+          renderWorkoutWorkspace(client);
+        }
+      } else if (action === "toggle-bw") {
+        const ex = findExerciseById(client, btn.getAttribute("data-ex-id"));
+        if (ex) {
+          const wObj = ex.weeks[w] || ex.weeks[1];
+          wObj.weight = (wObj.weight === "Свой вес") ? "" : "Свой вес";
+          saveState();
+          renderWorkoutWorkspace(client);
+        }
+      } else if (action === "step-sets") {
+        const ex = findExerciseById(client, btn.getAttribute("data-ex-id"));
+        const delta = parseInt(btn.getAttribute("data-delta"), 10);
+        if (ex) {
+          const wObj = ex.weeks[w] || ex.weeks[1];
+          wObj.actualSets = Math.max(1, (wObj.actualSets || wObj.planSets || 3) + delta);
+          saveState();
+          renderWorkoutWorkspace(client);
+        }
+      } else if (action === "select-rpe") {
+        const ex = findExerciseById(client, btn.getAttribute("data-ex-id"));
+        const rpeVal = Number(btn.getAttribute("data-rpe"));
+        if (ex) {
+          const wObj = ex.weeks[w] || ex.weeks[1];
+          wObj.actualRpe = rpeVal;
+          saveState();
+          renderWorkoutWorkspace(client);
+        }
+      } else if (action === "skip-exercise") {
+        const ex = findExerciseById(client, btn.getAttribute("data-ex-id"));
+        if (ex) {
+          pushUndo(`Пропущено: ${ex.name}`);
+          const wObj = ex.weeks[w] || ex.weeks[1];
+          wObj.status = "skipped";
+          delete appState.focusGroupIndexByClient[`${client.id}_w${w}_d${d}`];
+          saveState();
+          renderAll();
+        }
+      } else if (action === "start-table-timer") {
+        const sec = Number(btn.getAttribute("data-seconds")) || 60;
+        const lbl = btn.getAttribute("data-label") || "Отдых";
+        startTableTimer(sec, lbl);
+      } else if (action === "reset-table-timer") {
+        resetTableTimer();
+      } else if (action === "complete-unit") {
+        const unitIdx = Number(btn.getAttribute("data-unit-idx"));
+        const restSec = Number(btn.getAttribute("data-rest-sec")) || 90;
+        const units = getExecutionUnits(client, w, d);
+        const unit = units[unitIdx];
+        if (unit) {
+          pushUndo(`Выполнено: ${unit.items[0].name}`);
+          unit.items.forEach(ex => {
+            const wObj = ex.weeks[w] || ex.weeks[1];
+            wObj.status = "completed";
+          });
+          delete appState.focusGroupIndexByClient[`${client.id}_w${w}_d${d}`];
+          saveState();
+          startTableTimer(restSec, "Отдых по таблице");
+          renderAll();
+        }
+      } else if (action === "advance-next-workout") {
+        const dayKeys = Object.keys(client.days).map(Number).sort((a, b) => a - b);
+        const curIdx = dayKeys.indexOf(client.activeDay);
+        if (curIdx >= 0 && curIdx + 1 < dayKeys.length) {
+          client.activeDay = dayKeys[curIdx + 1];
+        } else if (client.activeWeek < client.totalWeeks) {
+          client.activeWeek += 1;
+          client.activeDay = dayKeys[0] || 1;
+        }
+        saveState();
+        renderAll();
+      } else if (action === "toggle-pin-client") {
+        const cId = btn.getAttribute("data-client-id");
+        const target = appState.clients.find(c => c.id === cId);
+        if (target) {
+          target.pinned = !target.pinned;
+          saveState();
+          renderAll();
+        }
+      }
+    });
+
+    document.addEventListener("input", (e) => {
+      const weightInput = e.target.closest('[data-action="input-weight"]');
+      if (weightInput) {
+        const client = getActiveClient();
+        const ex = findExerciseById(client, weightInput.getAttribute("data-ex-id"));
+        if (ex) {
+          const wObj = ex.weeks[client.activeWeek] || ex.weeks[1];
+          wObj.weight = weightInput.value.trim();
+          saveState();
+        }
+      }
+    });
+
+    // Top Header & Export / Delete All Buttons
+    document.getElementById("btnToggleTheme").addEventListener("click", () => {
+      applyTheme(appState.theme === "day" ? "night" : "day");
+    });
+    document.getElementById("btnSelectDayTheme").addEventListener("click", () => applyTheme("day"));
+    document.getElementById("btnSelectNightTheme").addEventListener("click", () => applyTheme("night"));
+    document.getElementById("btnUndoAction").addEventListener("click", performUndo);
+
+    document.getElementById("btnOpenSearch").addEventListener("click", () => {
+      appState.activeTab = "clients";
+      saveState();
+      renderAll();
+    });
+
+    document.getElementById("btnExportExcelHeader").addEventListener("click", () => exportClientToExcel(getActiveClient()));
+    document.getElementById("btnExportClientInline").addEventListener("click", () => exportClientToExcel(getActiveClient()));
+    document.getElementById("btnExportAllOrActiveXlsx").addEventListener("click", () => exportClientToExcel(getActiveClient()));
+    document.getElementById("btnExportFromAnalytics").addEventListener("click", () => exportClientToExcel(getActiveClient()));
+    document.getElementById("btnProfileExportXlsx").addEventListener("click", () => exportClientToExcel(getActiveClient()));
+
+    document.getElementById("btnDeleteAllClients").addEventListener("click", deleteAllClientsNow);
+    document.getElementById("btnProfileClearAll").addEventListener("click", deleteAllClientsNow);
+
+    document.getElementById("btnEmptyStateImport").addEventListener("click", () => {
+      document.getElementById("modalImport").classList.remove("hidden");
+    });
+
+    document.getElementById("inputTabSearchClient").addEventListener("input", () => renderSecondaryTabs());
+    document.getElementById("btnAddBlankClient").addEventListener("click", () => {
+      document.getElementById("modalImport").classList.remove("hidden");
+    });
+
+    // Quick Edit Modal (Pencil ✎)
+    document.getElementById("btnQuickEditClient").addEventListener("click", () => {
+      const client = getActiveClient();
+      if (!client) {
+        showUndoToast("Сначала добавьте клиента через ＋ Импорт");
+        return;
+      }
+      const w = client.activeWeek;
+      const d = client.activeDay;
+      const units = getExecutionUnits(client, w, d);
+      const activeUnit = units.find(u => !u.isDone) || units[0];
+      const activeEx = activeUnit ? activeUnit.items[0] : null;
+
+      document.getElementById("editClientNameInput").value = client.name;
+      if (activeEx) {
+        const wObj = activeEx.weeks[w] || activeEx.weeks[1];
+        document.getElementById("editExerciseNameInput").value = activeEx.name;
+        document.getElementById("editExerciseSchemeInput").value = `${wObj.actualSets}×${wObj.actualReps}`;
+        document.getElementById("editExerciseRestInput").value = activeEx.rest;
+        document.getElementById("editExerciseIntensificationInput").value = wObj.intensification || "";
+      }
+      document.getElementById("modalQuickEdit").classList.remove("hidden");
+    });
+
+    document.getElementById("btnCloseQuickEditModal").addEventListener("click", () => {
+      document.getElementById("modalQuickEdit").classList.add("hidden");
+    });
+
+    document.getElementById("btnDeleteCurrentClientInModal").addEventListener("click", () => {
+      const client = getActiveClient();
+      if (client) {
+        pushUndo(`Удалён клиент: ${client.name}`);
+        appState.clients = appState.clients.filter(c => c.id !== client.id);
+        appState.activeClientId = appState.clients[0] ? appState.clients[0].id : "";
+        document.getElementById("modalQuickEdit").classList.add("hidden");
+        saveState();
+        renderAll();
+      }
+    });
+
+    document.getElementById("btnSaveQuickEdit").addEventListener("click", () => {
+      const client = getActiveClient();
+      if (!client) return;
+      const w = client.activeWeek;
+      const d = client.activeDay;
+      const units = getExecutionUnits(client, w, d);
+      const activeUnit = units.find(u => !u.isDone) || units[0];
+      const activeEx = activeUnit ? activeUnit.items[0] : null;
+
+      const newClientName = document.getElementById("editClientNameInput").value.trim();
+      if (newClientName) client.name = newClientName;
+
+      if (activeEx) {
+        const newExName = document.getElementById("editExerciseNameInput").value.trim();
+        const newScheme = document.getElementById("editExerciseSchemeInput").value.trim();
+        const newRest = document.getElementById("editExerciseRestInput").value.trim();
+        const newIntens = document.getElementById("editExerciseIntensificationInput").value.trim();
+        if (newExName) activeEx.name = newExName;
+        if (newRest) activeEx.rest = newRest;
+        const wObjCurrent = activeEx.weeks[w] || activeEx.weeks[1];
+        wObjCurrent.intensification = newIntens;
+        if (newScheme) {
+          const parsed = parseSchemeAndRpeCell(newScheme, "");
+          const wObj = activeEx.weeks[w] || activeEx.weeks[1];
+          wObj.actualSets = parsed.sets;
+          wObj.actualReps = parsed.reps;
+          wObj.planSets = parsed.sets;
+          wObj.planReps = parsed.reps;
+          wObj.planScheme = parsed.scheme;
+        }
+      }
+      document.getElementById("modalQuickEdit").classList.add("hidden");
+      saveState();
+      renderAll();
+      showUndoToast("Изменения сохранены");
+    });
+
+    // Skipped Workout & Reset Controls
+    document.getElementById("btnMarkWorkoutSkipped").addEventListener("click", () => {
+      const client = getActiveClient();
+      if (!client) return;
+      const dayObj = client.days[client.activeDay];
+      dayObj.skippedWeeks = dayObj.skippedWeeks || {};
+      pushUndo(`День ${client.activeDay} помечен как пропуск`);
+      dayObj.skippedWeeks[client.activeWeek] = true;
+      saveState();
+      renderAll();
+    });
+
+    document.getElementById("btnSkippedResumeNow").addEventListener("click", () => {
+      const client = getActiveClient();
+      if (!client) return;
+      const dayObj = client.days[client.activeDay];
+      if (dayObj.skippedWeeks) delete dayObj.skippedWeeks[client.activeWeek];
+      saveState();
+      renderAll();
+    });
+
+    document.getElementById("btnSkippedShiftProgram").addEventListener("click", () => {
+      const client = getActiveClient();
+      if (!client) return;
+      const dayObj = client.days[client.activeDay];
+      if (dayObj.skippedWeeks) delete dayObj.skippedWeeks[client.activeWeek];
+      showUndoToast("Тренировка перенесена на текущее занятие (+1 день)");
+      saveState();
+      renderAll();
+    });
+
+    document.getElementById("btnSkippedKeepAndNext").addEventListener("click", () => {
+      const client = getActiveClient();
+      if (!client) return;
+      const dayKeys = Object.keys(client.days).map(Number).sort((a, b) => a - b);
+      const idx = dayKeys.indexOf(client.activeDay);
+      if (idx >= 0 && idx + 1 < dayKeys.length) client.activeDay = dayKeys[idx + 1];
+      else if (client.activeWeek < client.totalWeeks) { client.activeWeek += 1; client.activeDay = dayKeys[0] || 1; }
+      saveState();
+      renderAll();
+    });
+
+    document.getElementById("btnResetCurrentWorkout").addEventListener("click", () => {
+      const client = getActiveClient();
+      if (!client) return;
+      const w = client.activeWeek;
+      const d = client.activeDay;
+      pushUndo(`Сброшены отметки Недели ${w} • Дня ${d}`);
+      client.days[d].exercises.forEach(ex => {
+        const wObj = ex.weeks[w] || ex.weeks[1];
+        wObj.status = "pending";
+      });
+      delete appState.focusGroupIndexByClient[`${client.id}_w${w}_d${d}`];
+      saveState();
+      renderAll();
+    });
+
+    // =========================================================================
+    // 9. FILE UPLOAD & CLIPBOARD PASTE WIZARD
+    // =========================================================================
+    let stagedImportClient = null;
+
+    function showImportPreviewModal(parsedResult) {
+      stagedImportClient = parsedResult.client;
+      const report = parsedResult.report;
+
+      document.getElementById("modalImport").classList.remove("hidden");
+      document.getElementById("importStep1").classList.add("hidden");
+      const step2 = document.getElementById("importStep2");
+      step2.classList.remove("hidden");
+      step2.classList.add("flex");
+      document.getElementById("importStepIndicator").textContent = "Проверка распознанных дней и упражнений вашей таблицы";
+
+      document.getElementById("importMappingCard").innerHTML = `
+        <div class="font-extrabold text-main mb-2">✓ Таблица разделена по дням и колонкам:</div>
+        <div class="grid grid-cols-2 gap-1.5 text-[11px] text-sub">
+          <div class="p-2 rounded-xl glass-panel col-span-2">Тренировочные дни: <b class="accent-text">${report.daysDetected}</b></div>
+          <div class="p-2 rounded-xl glass-panel">Упражнение: <b class="text-main">${report.mappedCols.exercise}</b></div>
+          <div class="p-2 rounded-xl glass-panel">Повторы: <b class="text-main">${report.mappedCols.reps}</b></div>
+          <div class="p-2 rounded-xl glass-panel">Отдых (таймер): <b class="text-main">${report.mappedCols.rest}</b></div>
+          <div class="p-2 rounded-xl glass-panel">Шкала RPE: <b class="text-main">${report.mappedCols.rpe}</b></div>
+        </div>
+      `;
+
+      document.getElementById("importValidationCard").innerHTML = report.warnings.length === 0
+        ? `<div class="font-bold accent-text">✓ Прочитано ${report.totalExercisesParsed} упражнений (${Object.keys(stagedImportClient.days).length} тренировочных дней, дни отдыха автоматически исключены)</div>`
+        : `<div class="font-bold text-amber-500 mb-1">Замечания (${report.warnings.length}):</div>
+           <ul class="list-disc pl-4 space-y-1 text-[11px] text-sub">${report.warnings.map(w => `<li>${w}</li>`).join("")}</ul>`;
+
+      document.getElementById("importResumeSummaryCard").innerHTML = `
+        <div class="font-extrabold text-xs mb-1">🎯 Точка старта:</div>
+        <div class="text-xs space-y-0.5">
+          <div>• Клиент: <b>${stagedImportClient.name}</b></div>
+          <div>• Перенесено заполненных весов из таблицы: <b>${report.completedCount}</b></div>
+          <div>• Старт: <b>Неделя ${stagedImportClient.activeWeek}, ${stagedImportClient.days[stagedImportClient.activeDay].shortTitle} — «${report.firstUnfilledName}»</b></div>
+        </div>
+      `;
+    }
+
+    function handleSpreadsheetFileUpload(file, customName) {
+      if (!file) return;
+      const lower = file.name.toLowerCase();
+      if (lower.endsWith(".doc") || lower.endsWith(".docx")) {
+        showUndoToast("Поддерживаются только таблицы (.xlsx, .xls, .csv)");
+        return;
+      }
+
+      const reader = new FileReader();
+      reader.onload = (evt) => {
+        try {
+          let rows = [];
+          if (lower.endsWith(".csv") || lower.endsWith(".tsv") || lower.endsWith(".txt")) {
+            const text = new TextDecoder("utf-8").decode(new Uint8Array(evt.target.result));
+            const sep = text.includes("\t") ? "\t" : (text.includes(";") ? ";" : ",");
+            rows = text.split(/\r?\n/).map(line => line.split(sep));
+          } else if (typeof XLSX !== "undefined") {
+            const wb = XLSX.read(new Uint8Array(evt.target.result), { type: "array" });
+            wb.SheetNames.forEach((sheetName, sIdx) => {
+              if (sIdx > 0 && /замер|профиль/i.test(sheetName)) return;
+              const sheetRows = XLSX.utils.sheet_to_json(wb.Sheets[sheetName], { header: 1, defval: "" });
+              rows = rows.concat(sheetRows);
+            });
+          }
+          const parsed = parseAnySpreadsheetRows(rows, file.name, customName);
+          showImportPreviewModal(parsed);
+        } catch (err) {
+          showUndoToast("Ошибка чтения файла: " + (err.message || "проверьте формат таблицы"));
+        }
+      };
+      reader.readAsArrayBuffer(file);
+    }
+
+    document.getElementById("btnOpenImport").addEventListener("click", () => {
+      document.getElementById("importStep1").classList.remove("hidden");
+      document.getElementById("importStep2").classList.add("hidden");
+      document.getElementById("importClientNameInput").value = "";
+      document.getElementById("modalImport").classList.remove("hidden");
+    });
+
+    document.getElementById("btnCloseImportModal").addEventListener("click", () => {
+      document.getElementById("modalImport").classList.add("hidden");
+    });
+
+    document.getElementById("btnImportBackTo1").addEventListener("click", () => {
+      document.getElementById("importStep2").classList.add("hidden");
+      document.getElementById("importStep1").classList.remove("hidden");
+    });
+
+    document.getElementById("fileInputImportModal").addEventListener("change", (e) => {
+      const f = e.target.files && e.target.files[0];
+      const customName = document.getElementById("importClientNameInput").value.trim();
+      handleSpreadsheetFileUpload(f, customName);
+      e.target.value = "";
+    });
+
+    document.getElementById("fileInputTabTables").addEventListener("change", (e) => {
+      const f = e.target.files && e.target.files[0];
+      handleSpreadsheetFileUpload(f, "");
+      e.target.value = "";
+    });
+
+    document.getElementById("btnParsePastedTable").addEventListener("click", () => {
+      const rawText = document.getElementById("textareaPasteTable").value.trim();
+      const customName = document.getElementById("inputPastedClientName").value.trim() || "Клиент";
+      if (!rawText) {
+        showUndoToast("Вставьте скопированные ячейки таблицы в поле");
+        return;
+      }
+      try {
+        const sep = rawText.includes("\t") ? "\t" : (rawText.includes(";") ? ";" : ",");
+        const rows = rawText.split(/\r?\n/).map(line => line.split(sep));
+        const parsed = parseAnySpreadsheetRows(rows, customName, customName);
+        showImportPreviewModal(parsed);
+      } catch (err) {
+        showUndoToast("Не удалось распознать строки: " + (err.message || ""));
+      }
+    });
+
+    document.getElementById("btnConfirmImportAction").addEventListener("click", () => {
+      if (stagedImportClient) {
+        appState.clients.unshift(stagedImportClient);
+        appState.activeClientId = stagedImportClient.id;
+        appState.activeTab = "workouts";
+        saveState();
+        renderAll();
+        showUndoToast(`Загружена таблица: ${stagedImportClient.name}`);
+      }
+      document.getElementById("modalImport").classList.add("hidden");
+    });
+
+    // Initialize
+    loadState();
+    renderAll();
+  </script>
+</body>
+</html>
