@@ -1,0 +1,381 @@
+<!DOCTYPE html>
+<html lang="ru" data-theme="day">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>FitTrainer Live — Liquid Glass Edition</title>
+  <script src="https://cdn.tailwindcss.com/3.4.17"></script>
+  <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+
+    /* =========================================================================
+       1. ДНЕВНОЙ РЕЖИМ — SOFT GLASS (Молочно-белый с мятным и голубым)
+       ========================================================================= */
+    :root, html[data-theme="day"] {
+      --bg-app: #eef2f6;
+      --bg-gradient: radial-gradient(circle at 15% 10%, rgba(167, 243, 208, 0.38), transparent 45%),
+                     radial-gradient(circle at 85% 18%, rgba(186, 230, 253, 0.45), transparent 48%),
+                     linear-gradient(180deg, #f7f9fc 0%, #edf1f7 100%);
+      --glass-surface: rgba(255, 255, 255, 0.75);
+      --glass-surface-strong: rgba(255, 255, 255, 0.90);
+      --glass-surface-subtle: rgba(244, 247, 251, 0.82);
+      --glass-secondary-card: linear-gradient(135deg, rgba(224, 242, 254, 0.72) 0%, rgba(240, 249, 255, 0.84) 100%);
+      --glass-stroke: rgba(148, 163, 184, 0.24);
+      --glass-shadow: 0 12px 32px -8px rgba(15, 23, 42, 0.06), 0 2px 6px -1px rgba(15, 23, 42, 0.03);
+      --text-primary: #0f172a;
+      --text-secondary: #475569;
+      --text-muted: #64748b;
+      --accent-main: #10b981;
+      --accent-main-strong: #059669;
+      --accent-soft: rgba(16, 185, 129, 0.14);
+      --accent-border: rgba(16, 185, 129, 0.45);
+      --accent-glow: 0 0 0 1.5px rgba(16, 185, 129, 0.58), 0 12px 28px -6px rgba(16, 185, 129, 0.18);
+      --badge-info-bg: rgba(59, 130, 246, 0.12);
+      --badge-info-text: #2563eb;
+      --badge-warn-bg: rgba(245, 158, 11, 0.14);
+      --badge-warn-text: #d97706;
+      --nav-glass: rgba(255, 255, 255, 0.88);
+    }
+
+    /* =========================================================================
+       2. НОЧНОЙ РЕЖИМ — MIDNIGHT GLASS (Графитово-синий с холодным синим)
+       ========================================================================= */
+    html[data-theme="night"] {
+      --bg-app: #090e1a;
+      --bg-gradient: radial-gradient(circle at 18% 12%, rgba(37, 99, 235, 0.22), transparent 45%),
+                     radial-gradient(circle at 82% 20%, rgba(30, 64, 175, 0.18), transparent 50%),
+                     linear-gradient(180deg, #0b1120 0%, #070b14 100%);
+      --glass-surface: rgba(17, 25, 42, 0.74);
+      --glass-surface-strong: rgba(22, 32, 54, 0.90);
+      --glass-surface-subtle: rgba(13, 20, 35, 0.80);
+      --glass-secondary-card: linear-gradient(135deg, rgba(23, 37, 68, 0.78) 0%, rgba(15, 25, 48, 0.84) 100%);
+      --glass-stroke: rgba(59, 130, 246, 0.24);
+      --glass-shadow: 0 16px 36px -8px rgba(0, 0, 0, 0.55), inset 0 1px 0 0 rgba(255, 255, 255, 0.07);
+      --text-primary: #f8fafc;
+      --text-secondary: #cbd5e1;
+      --text-muted: #94a3b8;
+      --accent-main: #3b82f6;
+      --accent-main-strong: #2563eb;
+      --accent-soft: rgba(59, 130, 246, 0.18);
+      --accent-border: rgba(59, 130, 246, 0.65);
+      --accent-glow: 0 0 0 1.5px rgba(59, 130, 246, 0.72), 0 12px 30px -6px rgba(37, 99, 235, 0.38);
+      --badge-info-bg: rgba(59, 130, 246, 0.18);
+      --badge-info-text: #60a5fa;
+      --badge-warn-bg: rgba(245, 158, 11, 0.16);
+      --badge-warn-text: #fbbf24;
+      --nav-glass: rgba(13, 20, 36, 0.90);
+    }
+
+    body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      background: var(--bg-gradient);
+      background-color: var(--bg-app);
+      color: var(--text-primary);
+      margin: 0;
+      padding: 0;
+      overflow-x: hidden;
+      user-select: none;
+      transition: background 0.25s ease, color 0.2s ease;
+    }
+
+    .glass-panel {
+      background: var(--glass-surface);
+      backdrop-filter: blur(22px) saturate(160%);
+      -webkit-backdrop-filter: blur(22px) saturate(160%);
+      border: 1px solid var(--glass-stroke);
+      box-shadow: var(--glass-shadow);
+    }
+
+    .glass-panel-strong {
+      background: var(--glass-surface-strong);
+      backdrop-filter: blur(26px) saturate(180%);
+      -webkit-backdrop-filter: blur(26px) saturate(180%);
+      border: 1px solid var(--glass-stroke);
+      box-shadow: var(--glass-shadow);
+    }
+
+    .glass-subbox {
+      background: var(--glass-surface-subtle);
+      border: 1px solid var(--glass-stroke);
+    }
+
+    .glass-active-card {
+      background: var(--glass-surface-strong);
+      backdrop-filter: blur(24px);
+      -webkit-backdrop-filter: blur(24px);
+      border: 1.5px solid var(--accent-border);
+      box-shadow: var(--accent-glow);
+    }
+
+    .glass-secondary-card {
+      background: var(--glass-secondary-card);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border: 1px solid var(--glass-stroke);
+      box-shadow: var(--glass-shadow);
+    }
+
+    .accent-pill {
+      background: var(--accent-soft);
+      color: var(--accent-main-strong);
+      border: 1px solid var(--accent-border);
+    }
+    html[data-theme="night"] .accent-pill { color: #93c5fd; }
+
+    .intensifier-pill {
+      background: linear-gradient(135deg, rgba(245, 158, 11, 0.16) 0%, rgba(234, 88, 12, 0.12) 100%);
+      color: #b45309;
+      border: 1px solid rgba(245, 158, 11, 0.45);
+    }
+    html[data-theme="night"] .intensifier-pill {
+      background: linear-gradient(135deg, rgba(245, 158, 11, 0.22) 0%, rgba(59, 130, 246, 0.22) 100%);
+      color: #fcd34d;
+      border: 1px solid rgba(251, 191, 36, 0.50);
+    }
+
+    .accent-btn {
+      background: var(--accent-soft);
+      color: var(--accent-main-strong);
+      border: 1.5px solid var(--accent-border);
+    }
+    html[data-theme="night"] .accent-btn {
+      background: linear-gradient(180deg, rgba(37, 99, 235, 0.42) 0%, rgba(29, 78, 216, 0.58) 100%);
+      color: #f8fafc;
+    }
+
+    .accent-solid-btn {
+      background: var(--accent-main);
+      color: #ffffff;
+      box-shadow: 0 8px 20px -4px rgba(16, 185, 129, 0.35);
+    }
+    html[data-theme="night"] .accent-solid-btn {
+      background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+      box-shadow: 0 8px 22px -4px rgba(37, 99, 235, 0.5);
+    }
+
+    .text-main { color: var(--text-primary); }
+    .text-sub { color: var(--text-secondary); }
+    .text-muted-custom { color: var(--text-muted); }
+    .accent-text { color: var(--accent-main); }
+
+    .no-scrollbar::-webkit-scrollbar { display: none; }
+    .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+    .snap-x-mandatory { scroll-snap-type: x mandatory; }
+    .snap-start-card { scroll-snap-align: start; }
+  </style>
+</head>
+<body class="min-h-screen flex flex-col items-center">
+
+  <div class="w-full max-w-xl min-h-screen flex flex-col justify-between relative pb-28">
+
+    <!-- =====================================================================
+         TOP HEADER (Liquid Glass)
+         ===================================================================== -->
+    <header class="sticky top-0 z-30 px-3.5 pt-3 pb-2.5" style="background: var(--nav-glass); backdrop-filter: blur(22px); -webkit-backdrop-filter: blur(22px); border-bottom: 1px solid var(--glass-stroke);">
+      <div class="flex items-center justify-between gap-2 mb-2.5">
+        <div class="flex items-center gap-2 min-w-0">
+          <div class="w-10 h-10 rounded-full glass-panel-strong flex items-center justify-center font-extrabold text-sm shrink-0 accent-text" style="border-width: 1.5px; border-color: var(--accent-border);">
+            FT
+          </div>
+          <div class="min-w-0">
+            <div class="flex items-center gap-1.5">
+              <h1 class="text-[15px] font-extrabold tracking-tight text-main truncate">FitTrainer Live</h1>
+              <span class="w-2 h-2 rounded-full shrink-0" style="background: var(--accent-main);"></span>
+            </div>
+            <p class="text-[11px] text-muted-custom leading-tight truncate">Смена в зале • 1 касание</p>
+          </div>
+        </div>
+
+        <!-- Top Right Controls -->
+        <div class="flex items-center gap-1.5 shrink-0">
+          <button id="btnOpenSearch" type="button" class="h-9 px-2.5 rounded-2xl glass-panel flex items-center gap-1 text-xs font-bold text-main active:scale-95 transition" title="Список клиентов и удаление">
+            <span>🔍</span>
+            <span id="clientCountBadge">0</span>
+          </button>
+
+          <button id="btnExportExcelHeader" type="button" class="h-9 px-2.5 rounded-2xl glass-panel flex items-center gap-1 text-xs font-bold text-main active:scale-95 transition" title="Экспорт текущей программы в Excel (.xlsx)">
+            <span>📥</span>
+            <span class="hidden sm:inline">Excel</span>
+          </button>
+
+          <button id="btnQuickEditClient" type="button" class="w-9 h-9 rounded-2xl glass-panel flex items-center justify-center text-xs font-bold text-main active:scale-95 transition" title="Быстрое редактирование">
+            ✎
+          </button>
+
+          <button id="btnToggleTheme" type="button" class="w-9 h-9 rounded-2xl glass-panel flex items-center justify-center text-sm active:scale-95 transition" title="Переключить тему Дневной / Ночной">
+            <span id="themeIcon">🌙</span>
+          </button>
+
+          <button id="btnOpenImport" type="button" class="h-9 px-3 rounded-2xl accent-btn font-bold text-[11px] flex flex-col items-center justify-center leading-tight active:scale-95 transition">
+            <span class="text-xs font-extrabold">＋</span>
+            <span>Импорт</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- HORIZONTAL CLIENT CAROUSEL -->
+      <div id="clientCarousel" class="flex items-stretch gap-2.5 overflow-x-auto no-scrollbar snap-x-mandatory py-0.5">
+        <!-- Rendered by JS -->
+      </div>
+    </header>
+
+    <!-- =====================================================================
+         MAIN CONTENT AREA
+         ===================================================================== -->
+    <main class="flex-1 px-3.5 pt-3 flex flex-col gap-3">
+
+      <!-- TAB 1: ТРЕНИРОВКИ -->
+      <div id="tabViewWorkouts" class="flex flex-col gap-3">
+        <!-- Empty State (Shown when all clients are deleted or before first table import) -->
+        <section id="emptyClientsState" class="hidden glass-panel rounded-3xl p-6 text-center my-4">
+          <div class="text-3xl mb-2">📊</div>
+          <h2 class="text-base font-extrabold text-main">Нет загруженных программ клиентов</h2>
+          <p class="text-xs text-sub mt-1 mb-4">
+            Нажмите <b>«＋ Импорт»</b>, чтобы загрузить вашу таблицу Excel (`.xlsx`, `.xls`, `.csv`). Приложение автоматически разделит программу по дням недели (`Понедельник`, `Среда`, `Четверг`... или `День 1..N`), перенесёт заполненные веса и настроит таймер отдыха.
+          </p>
+          <button id="btnEmptyStateImport" type="button" class="py-3 px-5 rounded-2xl accent-solid-btn font-extrabold text-xs">
+            ＋ Импортировать таблицу (.xlsx / .csv)
+          </button>
+        </section>
+
+        <!-- Active Client Workout Content -->
+        <div id="activeWorkoutWrapper" class="flex flex-col gap-3">
+          <!-- PROGRAM PROGRESS & WEEK/DAY NAVIGATOR CARD -->
+          <section class="glass-panel rounded-3xl p-3.5">
+            <div class="flex items-center justify-between gap-2 mb-2.5">
+              <div class="min-w-0">
+                <div class="flex items-center gap-1.5 flex-wrap mb-1">
+                  <span id="clientSourceBadge" class="inline-block px-2.5 py-0.5 rounded-full text-[11px] font-semibold" style="background: var(--badge-info-bg); color: var(--badge-info-text);">
+                    Импортировано из таблицы
+                  </span>
+                  <button id="btnExportClientInline" type="button" class="px-2.5 py-0.5 rounded-full text-[11px] font-bold accent-pill active:scale-95 transition">
+                    📥 Скачать .xlsx
+                  </button>
+                </div>
+                <div id="programProgressText" class="text-[15px] font-extrabold text-main truncate">
+                  Неделя 1 из 6 • День 1
+                </div>
+              </div>
+
+              <div class="flex items-center gap-1.5 shrink-0">
+                <button id="btnMarkWorkoutSkipped" type="button" class="px-2.5 py-1.5 rounded-2xl glass-subbox flex flex-col items-center justify-center text-[11px] font-bold leading-tight active:scale-95 transition" style="color: var(--badge-warn-text);">
+                  <span>⏭</span>
+                  <span>Пропуск</span>
+                  <span class="text-[10px]">дня</span>
+                </button>
+                <button id="btnResetCurrentWorkout" type="button" class="px-2.5 py-1.5 rounded-2xl glass-subbox flex flex-col items-center justify-center text-[11px] font-semibold text-sub leading-tight active:scale-95 transition" title="Сбросить выполнение этого дня">
+                  <span>↻</span>
+                  <span>Сброс</span>
+                </button>
+              </div>
+            </div>
+
+            <!-- Week Selector Pills -->
+            <div id="weekSelector" class="flex items-center gap-1.5 overflow-x-auto no-scrollbar pb-2">
+              <!-- Rendered by JS -->
+            </div>
+
+            <!-- Day Selector Cards (Supports 1 to 7 training days, e.g. ПН, СР, ЧТ, ПТ, СБ) -->
+            <div id="daySelector" class="grid grid-cols-2 sm:grid-cols-3 gap-1.5 pt-1">
+              <!-- Rendered by JS -->
+            </div>
+          </section>
+
+          <!-- MISSED WORKOUT DECISION BANNER -->
+          <section id="skippedDayBanner" class="hidden glass-panel rounded-3xl p-3.5" style="border-color: rgba(245, 158, 11, 0.5);">
+            <p class="text-xs font-extrabold" style="color: var(--badge-warn-text);">
+              ⚠️ Тренировка помечена как пропущенная
+            </p>
+            <p class="text-[11px] text-sub mt-0.5">
+              Программа не сдвигается автоматически без вашего решения:
+            </p>
+            <div class="grid grid-cols-3 gap-1.5 mt-2.5">
+              <button id="btnSkippedResumeNow" type="button" class="py-2 px-2 rounded-xl accent-solid-btn font-bold text-xs active:scale-95 transition">
+                Провести сейчас
+              </button>
+              <button id="btnSkippedShiftProgram" type="button" class="py-2 px-2 rounded-xl glass-subbox font-semibold text-xs text-main active:scale-95 transition">
+                Перенести (+1)
+              </button>
+              <button id="btnSkippedKeepAndNext" type="button" class="py-2 px-2 rounded-xl glass-subbox font-medium text-xs text-sub active:scale-95 transition">
+                Оставить пропуск
+              </button>
+            </div>
+          </section>
+
+          <!-- COMPLETED EXERCISES -->
+          <section id="completedExercisesSection" class="flex flex-col gap-1.5"></section>
+
+          <!-- CURRENT ACTIVE EXERCISE OR SUPERSET CARD -->
+          <section id="activeFocusZone"></section>
+
+          <!-- NEXT EXERCISE PREVIEW & UPCOMING QUEUE -->
+          <section id="nextPreviewZone"></section>
+          <section id="upcomingExercisesSection" class="flex flex-col gap-1.5"></section>
+        </div>
+      </div>
+
+      <!-- TAB 2: ТАБЛИЦЫ (Import & Export Excel .xlsx) -->
+      <div id="tabViewTables" class="hidden flex-col gap-3">
+        <section class="glass-panel rounded-3xl p-4">
+          <h2 class="text-base font-extrabold text-main mb-1">Импорт и Экспорт таблиц Excel (.xlsx)</h2>
+          <p class="text-xs text-sub mb-3">
+            Загрузите вашу таблицу тренировок (`.xlsx`, `.xls`, `.csv`). Парсер автоматически распознаёт дни недели (`Понедельник`, `Среда`, `Четверг`... или `День 1..N`), пропускает `День отдыха`, соединяет подходы (`3 x`) с колонкой `Повторы` (`6–8` → `3×6–8`) и переносит веса только там, где они реально заполнены.
+          </p>
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
+            <label class="p-4 rounded-2xl glass-subbox border-dashed border-2 text-center cursor-pointer hover:opacity-90 transition flex flex-col items-center justify-center" style="border-color: var(--accent-border);">
+              <div class="text-base font-extrabold text-main mb-0.5">📂 Импорт из файла</div>
+              <div class="text-[11px] text-muted-custom">Выбрать .xlsx / .xls / .csv</div>
+              <input id="fileInputTabTables" type="file" accept=".xlsx,.xls,.csv,.tsv,.txt" class="hidden" />
+            </label>
+
+            <button id="btnExportAllOrActiveXlsx" type="button" class="p-4 rounded-2xl accent-btn text-center flex flex-col items-center justify-center active:scale-98 transition">
+              <div class="text-base font-extrabold mb-0.5">📥 Экспорт в Excel (.xlsx)</div>
+              <div class="text-[11px] opacity-85">Выгрузить заполненные веса и RPE текущего клиента</div>
+            </button>
+          </div>
+        </section>
+
+        <section class="glass-panel rounded-3xl p-4">
+          <div class="flex items-center justify-between mb-2">
+            <h3 class="text-sm font-extrabold text-main">Вставить ячейки напрямую из Google Sheets / Excel</h3>
+            <button id="btnParsePastedTable" type="button" class="px-3 py-1.5 rounded-xl accent-solid-btn text-xs font-bold">Распознать</button>
+          </div>
+          <input id="inputPastedClientName" type="text" placeholder="Имя клиента..." class="w-full px-3 py-2 rounded-xl glass-subbox text-xs text-main mb-2 focus:outline-none" />
+          <textarea id="textareaPasteTable" rows="4" placeholder="День недели&#9;Упражнение&#9;Повторы&#9;Отдых&#9;Неделя 1&#9;Вес&#10;ПОНЕДЕЛЬНИК&#9;1. Армейский жим в Смите&#9;6-8&#9;3 мин&#9;3 x (RPE 7)&#9;" class="w-full p-2.5 rounded-xl glass-subbox text-xs text-main font-mono focus:outline-none"></textarea>
+        </section>
+
+        <section class="glass-panel rounded-3xl p-4">
+          <h3 class="text-sm font-extrabold text-main mb-2">Таблицы в приложении (экспорт / удаление)</h3>
+          <div id="tablesLoadedList" class="flex flex-col gap-2"></div>
+        </section>
+      </div>
+
+      <!-- TAB 3: КЛИЕНТЫ (Manage, Delete Single or Delete ALL Clients) -->
+      <div id="tabViewClients" class="hidden flex-col gap-3">
+        <section class="glass-panel rounded-3xl p-4">
+          <div class="flex items-center justify-between gap-2 flex-wrap mb-3">
+            <div>
+              <h2 class="text-base font-extrabold text-main">Управление клиентами</h2>
+              <p class="text-xs text-sub">Вы можете удалить любую карточку или очистить весь список</p>
+            </div>
+            <div class="flex items-center gap-1.5">
+              <button id="btnDeleteAllClients" type="button" class="px-3 py-2 rounded-2xl glass-subbox text-rose-500 text-xs font-extrabold active:scale-95 transition">
+                🗑 Удалить всех
+              </button>
+              <button id="btnAddBlankClient" type="button" class="px-3 py-2 rounded-2xl accent-solid-btn text-xs font-bold active:scale-95 transition">
+                ＋ Импорт
+              </button>
+            </div>
+          </div>
+          <input id="inputTabSearchClient" type="text" placeholder="Поиск по имени клиента..." class="w-full px-3.5 py-2.5 rounded-2xl glass-subbox text-xs text-main mb-3 focus:outline-none" />
+          <div id="tabClientsListContainer" class="flex flex-col gap-2"></div>
+        </section>
+      </div>
+
+      <!-- TAB 4: АНАЛИТИКА -->
+      <div id="tabViewAnalytics" class="hidden flex-col gap-3">
+        <section class="
